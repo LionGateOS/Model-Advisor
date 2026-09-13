@@ -94,5 +94,60 @@ class CLITests(unittest.TestCase):
         )
 
 
+    @patch("liongateos_model_advisor.cli.assess_compatibility")
+    @patch(
+        "liongateos_model_advisor.cli.collect_runtime_capability_evidence"
+    )
+    @patch("liongateos_model_advisor.cli.discover_runtimes")
+    @patch("liongateos_model_advisor.cli.discover_hardware")
+    def test_compatibility_command_combines_discovery_and_evidence(
+        self,
+        discover_hardware,
+        discover_runtimes,
+        collect_evidence,
+        assess,
+    ):
+        hardware = HardwareProfile(
+            cpu=CPU(model="Example CPU")
+        )
+        runtimes = RuntimeProfile(
+            runtimes=(
+                Runtime(name="llama.cpp", available=True),
+            )
+        )
+        compatibility = RuntimeProfile()
+
+        discover_hardware.return_value = hardware
+        discover_runtimes.return_value = runtimes
+        collect_evidence.return_value = ()
+        assess.return_value = compatibility
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(
+                [
+                    "compatibility",
+                    "--runtime-path",
+                    "/private/example/llama.cpp/bin",
+                ]
+            )
+
+        self.assertEqual(result, 0)
+        discover_hardware.assert_called_once_with()
+        discover_runtimes.assert_called_once_with(
+            ["/private/example/llama.cpp/bin"]
+        )
+        collect_evidence.assert_called_once_with(
+            runtimes,
+            ["/private/example/llama.cpp/bin"],
+        )
+        assess.assert_called_once_with(
+            hardware,
+            runtimes,
+            (),
+        )
+        self.assertNotIn("/private/example", output.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()
