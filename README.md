@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/model-advisor-banner.png" alt="LionGateOS Model Advisor banner" width="100%">
+</p>
+
 # LionGateOS Model Advisor
 
 > **Know what AI your machine should run.**
@@ -94,14 +98,6 @@ Useful contribution areas will include:
 - documentation.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) before starting a substantial change.
-
-## Relationship to WorkRunner
-
-Model Advisor is a separate public LionGateOS project.
-
-It focuses on understanding hardware, models, compatibility, recommendations, and benchmarking.
-
-LionGateOS WorkRunner remains the private execution and orchestration system responsible for controlled AI work, approvals, policy, recovery, and execution authority.
 
 ## License
 
