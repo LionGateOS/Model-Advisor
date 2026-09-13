@@ -25,14 +25,14 @@ Current limitations:
 
 - automatic hardware discovery is currently Linux-focused;
 - AMD and Intel GPU enrichment beyond PCI information is not yet implemented;
-- runtime discovery is not yet implemented;
+- runtime discovery currently covers Ollama, llama.cpp, and vLLM;
 - model compatibility and recommendation logic are not yet implemented;
 - benchmark execution and comparison are not yet implemented.
 
 Planned areas include:
 
 - broader NVIDIA, AMD, Intel, Apple Silicon, and CPU support;
-- local AI runtime discovery;
+- broader local AI runtime discovery and runtime metadata;
 - model and runtime compatibility information;
 - VRAM, RAM, storage, and offload estimates;
 - quantization recommendations;
@@ -55,6 +55,27 @@ For manual hardware entry:
     PYTHONPATH=src python3 -m liongateos_model_advisor --manual
 
 The output is a normalized JSON hardware profile. Unknown values remain unknown rather than being guessed.
+
+## Discover Local AI Runtimes
+
+Model Advisor can detect supported AI runtimes without starting them:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor runtimes
+
+Current runtime discovery includes:
+
+- Ollama from the system `PATH`;
+- vLLM from the system `PATH`;
+- llama.cpp tools such as `llama-cli` and `llama-server` from `PATH`;
+- explicitly supplied llama.cpp directories or executables.
+
+For a custom llama.cpp installation:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor runtimes --runtime-path /path/to/llama.cpp/bin
+
+Absolute custom filesystem paths are used only for discovery and are not included in the normalized public runtime profile.
+
+Runtime discovery reports installation availability and metadata such as versions and supported executable names. It does **not** start services or claim that an installed runtime is currently running.
 
 ## Contributing
 
