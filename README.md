@@ -18,6 +18,8 @@ Current capabilities include:
 - NVIDIA GPU enrichment through `nvidia-smi` when available, including model, VRAM, and driver version;
 - basic vendor and device identification from PCI information;
 - manual hardware entry when automatic discovery is unavailable or unwanted;
+- read-only discovery of Ollama, llama.cpp, and vLLM;
+- conservative hardware/runtime compatibility assessment from explicit runtime capability evidence;
 - normalized JSON output;
 - graceful handling of unavailable optional discovery tools and unknown values.
 
@@ -26,6 +28,7 @@ Current limitations:
 - automatic hardware discovery is currently Linux-focused;
 - AMD and Intel GPU enrichment beyond PCI information is not yet implemented;
 - runtime discovery currently covers Ollama, llama.cpp, and vLLM;
+- hardware/runtime compatibility currently depends on explicit positive capability evidence and may remain unknown when evidence is unavailable;
 - model compatibility and recommendation logic are not yet implemented;
 - benchmark execution and comparison are not yet implemented.
 
@@ -76,6 +79,33 @@ For a custom llama.cpp installation:
 Absolute custom filesystem paths are used only for discovery and are not included in the normalized public runtime profile.
 
 Runtime discovery reports installation availability and metadata such as versions and supported executable names. It does **not** start services or claim that an installed runtime is currently running.
+
+## Check Hardware/Runtime Compatibility
+
+Model Advisor can combine detected hardware, installed runtimes, and read-only runtime capability evidence:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor compatibility
+
+For a custom llama.cpp installation:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor compatibility --runtime-path /path/to/llama.cpp/bin
+
+Compatibility results distinguish:
+
+- `compatible` — positive runtime capability evidence matches detected hardware;
+- `incompatible` — reserved for cases where incompatibility is actually proven;
+- `unknown` — there is not enough evidence to make a safe compatibility claim;
+- `unavailable` — the runtime was not discovered.
+
+Current positive evidence sources include:
+
+- llama.cpp device reporting through `--list-devices`;
+- vLLM environment reporting through `collect-env`;
+- observed Ollama GPU execution through `ollama ps`.
+
+Missing or failed capability probes do **not** automatically mean incompatible. Model Advisor keeps those results unknown rather than guessing.
+
+This compatibility layer evaluates detected hardware against runtime capability evidence. It does **not** yet determine whether a particular model will fit, perform well, or be recommended for the machine.
 
 ## Contributing
 
