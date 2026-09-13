@@ -149,5 +149,49 @@ class CLITests(unittest.TestCase):
         self.assertNotIn("/private/example", output.getvalue())
 
 
+    @patch("liongateos_model_advisor.cli.create_dashboard_server")
+    def test_dashboard_command_starts_local_server(self, create_server):
+        class FakeServer:
+            server_address = ("127.0.0.1", 8765)
+
+            def __init__(self):
+                self.served = False
+                self.closed = False
+
+            def serve_forever(self):
+                self.served = True
+
+            def server_close(self):
+                self.closed = True
+
+        server = FakeServer()
+        create_server.return_value = server
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(
+                [
+                    "dashboard",
+                    "--runtime-path",
+                    "/private/example/llama.cpp/bin",
+                ]
+            )
+
+        self.assertEqual(result, 0)
+        self.assertTrue(server.served)
+        self.assertTrue(server.closed)
+        self.assertIn(
+            "http://127.0.0.1:8765/",
+            output.getvalue(),
+        )
+        self.assertNotIn(
+            "/private/example",
+            output.getvalue(),
+        )
+        create_server.assert_called_once_with(
+            ["/private/example/llama.cpp/bin"]
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
