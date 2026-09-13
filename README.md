@@ -24,6 +24,7 @@ Current capabilities include:
 - manual hardware entry when automatic discovery is unavailable or unwanted;
 - read-only discovery of Ollama, llama.cpp, and vLLM;
 - conservative hardware/runtime compatibility assessment from explicit runtime capability evidence;
+- local read-only web dashboard for hardware, runtime, compatibility, reasons, and evidence;
 - normalized JSON output;
 - graceful handling of unavailable optional discovery tools and unknown values.
 
@@ -110,6 +111,26 @@ Current positive evidence sources include:
 Missing or failed capability probes do **not** automatically mean incompatible. Model Advisor keeps those results unknown rather than guessing.
 
 This compatibility layer evaluates detected hardware against runtime capability evidence. It does **not** yet determine whether a particular model will fit, perform well, or be recommended for the machine.
+
+## Open the Local Dashboard
+
+Model Advisor includes a local read-only dashboard that presents the same verified hardware, runtime discovery, and compatibility information in a browser:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor dashboard
+
+Then open:
+
+    http://127.0.0.1:8765/
+
+The dashboard binds to the local loopback interface by default. It does not provide shell access, model installation, downloads, job dispatch, approval controls, or arbitrary filesystem access.
+
+For a custom llama.cpp installation:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor dashboard --runtime-path /path/to/llama.cpp/bin
+
+The dashboard shows compatibility conclusions alongside their reasons and evidence. The same conservative evidence rules apply as in the command-line compatibility output: missing evidence remains unknown rather than being treated as incompatibility.
+
+The dashboard currently presents implemented hardware, runtime, and compatibility capabilities only. Model-fit recommendations, quantization guidance, benchmark results, confidence scoring, and concurrency estimates are not yet implemented.
 
 ## Contributing
 

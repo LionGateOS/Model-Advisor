@@ -15,3 +15,10 @@ authors = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+liongateos_model_advisor = [
+    "web/*.html",
+    "web/*.css",
+    "web/*.js",
+]
