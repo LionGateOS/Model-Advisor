@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from liongateos_model_advisor.cli import main
 from liongateos_model_advisor.hardware_profile import CPU, HardwareProfile
+from liongateos_model_advisor.runtime_profile import Runtime, RuntimeProfile
 
 
 class CLITests(unittest.TestCase):
@@ -46,6 +47,51 @@ class CLITests(unittest.TestCase):
 
         self.assertEqual(result, 0)
         self.assertEqual(data["cpu"]["model"], "Manual CPU")
+
+    @patch("liongateos_model_advisor.cli.discover_runtimes")
+    def test_runtime_command_outputs_runtime_profile(self, discover):
+        discover.return_value = RuntimeProfile(
+            runtimes=(
+                Runtime(
+                    name="ollama",
+                    available=True,
+                    version="0.22.1",
+                    executables=("ollama",),
+                    discovery_sources=("path",),
+                ),
+            )
+        )
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(["runtimes"])
+
+        data = json.loads(output.getvalue())
+
+        self.assertEqual(result, 0)
+        self.assertEqual(data["runtimes"][0]["name"], "ollama")
+        self.assertEqual(data["runtimes"][0]["version"], "0.22.1")
+        discover.assert_called_once_with([])
+
+    @patch("liongateos_model_advisor.cli.discover_runtimes")
+    def test_runtime_paths_are_forwarded_without_being_printed(self, discover):
+        discover.return_value = RuntimeProfile()
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(
+                [
+                    "runtimes",
+                    "--runtime-path",
+                    "/private/example/llama.cpp/bin",
+                ]
+            )
+
+        self.assertEqual(result, 0)
+        self.assertNotIn("/private/example", output.getvalue())
+        discover.assert_called_once_with(
+            ["/private/example/llama.cpp/bin"]
+        )
 
 
 if __name__ == "__main__":
