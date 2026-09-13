@@ -1,0 +1,22 @@
+name: Bug report
+description: Report something that is not working correctly.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Explain what you expected and what actually happened.
+    validations:
+      required: true
+  - type: textarea
+    id: hardware-os
+    attributes:
+      label: Hardware and operating system
+      description: Include relevant GPU, CPU, RAM, operating system, and runtime information.
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional information
+      description: Logs, screenshots, or other useful details.

@@ -1,0 +1,27 @@
+name: Runtime support
+description: Request or help add support for an AI runtime.
+title: "[Runtime]: "
+labels: ["runtime"]
+body:
+  - type: input
+    id: runtime
+    attributes:
+      label: Runtime
+      description: For example Ollama, llama.cpp, vLLM, or another runtime.
+    validations:
+      required: true
+  - type: textarea
+    id: support-needed
+    attributes:
+      label: What should Model Advisor support?
+    validations:
+      required: true
+  - type: dropdown
+    id: help
+    attributes:
+      label: Would you like to help?
+      options:
+        - Yes — I can contribute
+        - Yes — I can test
+        - Maybe — tell me how
+        - Not currently

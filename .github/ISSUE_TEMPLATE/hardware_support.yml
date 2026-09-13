@@ -1,0 +1,28 @@
+name: Hardware support
+description: Request or help add support for hardware.
+title: "[Hardware]: "
+labels: ["hardware"]
+body:
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware
+      description: GPU, CPU, accelerator, or other hardware model.
+    validations:
+      required: true
+  - type: textarea
+    id: support-needed
+    attributes:
+      label: What support is needed?
+      description: Tell us what Model Advisor should detect, understand, benchmark, or recommend.
+    validations:
+      required: true
+  - type: dropdown
+    id: help
+    attributes:
+      label: Would you like to help?
+      options:
+        - Yes — I can contribute code or testing
+        - Yes — I can provide hardware information or benchmark results
+        - Maybe — tell me how
+        - Not currently

@@ -1,0 +1,26 @@
+name: Feature idea
+description: Suggest an improvement to Model Advisor.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: feature
+    attributes:
+      label: What would you like Model Advisor to do?
+    validations:
+      required: true
+  - type: textarea
+    id: usefulness
+    attributes:
+      label: Why would this be useful?
+    validations:
+      required: true
+  - type: dropdown
+    id: help
+    attributes:
+      label: Would you like to help build it?
+      options:
+        - Yes
+        - Maybe — I need guidance
+        - I can help test it
+        - Not currently
