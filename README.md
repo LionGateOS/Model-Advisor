@@ -99,14 +99,6 @@ Useful contribution areas will include:
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) before starting a substantial change.
 
-## Relationship to WorkRunner
-
-Model Advisor is a separate public LionGateOS project.
-
-It focuses on understanding hardware, models, compatibility, recommendations, and benchmarking.
-
-LionGateOS WorkRunner remains the private execution and orchestration system responsible for controlled AI work, approvals, policy, recovery, and execution authority.
-
 ## License
 
 Licensed under the [Apache License 2.0](LICENSE).
