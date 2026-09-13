@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/model-advisor-banner.png" alt="LionGateOS Model Advisor banner" width="100%">
+</p>
+
 # LionGateOS Model Advisor
 
 > **Know what AI your machine should run.**
