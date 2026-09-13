@@ -11,6 +11,7 @@ from .compatibility import assess_compatibility
 from .dashboard_server import create_dashboard_server
 from .discovery import discover_hardware
 from .manual import enter_hardware_manually
+from .model_discovery import discover_ollama_models
 from .runtime_discovery import discover_runtimes
 
 
@@ -22,11 +23,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "command",
         nargs="?",
-        choices=("hardware", "runtimes", "compatibility", "dashboard"),
+        choices=(
+            "hardware",
+            "runtimes",
+            "compatibility",
+            "models",
+            "dashboard",
+        ),
         default="hardware",
         help=(
             "inspect hardware (default), installed AI runtimes, "
-            "hardware/runtime compatibility, or launch the local dashboard"
+            "hardware/runtime compatibility, local model metadata, "
+            "or launch the local dashboard"
         ),
     )
     parser.add_argument(
@@ -65,7 +73,18 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         return 0
 
-    if args.command == "runtimes":
+    if args.command == "models":
+        if args.manual:
+            parser.error("--manual can only be used with hardware discovery")
+
+        if args.runtime_path:
+            parser.error(
+                "--runtime-path cannot be used with local model discovery"
+            )
+
+        profile = discover_ollama_models()
+
+    elif args.command == "runtimes":
         if args.manual:
             parser.error("--manual can only be used with hardware discovery")
 

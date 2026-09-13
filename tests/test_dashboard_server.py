@@ -41,6 +41,7 @@ class DashboardServerTests(unittest.TestCase):
             "hardware": {"schema_version": "1"},
             "runtimes": {"schema_version": "1"},
             "compatibility": {"schema_version": "1"},
+            "models": {"schema_version": "1"},
         }
 
         server = create_dashboard_server(
@@ -70,6 +71,10 @@ class DashboardServerTests(unittest.TestCase):
             )
             self.assertEqual(
                 data["compatibility"]["schema_version"],
+                "1",
+            )
+            self.assertEqual(
+                data["models"]["schema_version"],
                 "1",
             )
             collect.assert_called_once_with(

@@ -24,7 +24,9 @@ Current capabilities include:
 - manual hardware entry when automatic discovery is unavailable or unwanted;
 - read-only discovery of Ollama, llama.cpp, and vLLM;
 - conservative hardware/runtime compatibility assessment from explicit runtime capability evidence;
-- local read-only web dashboard for hardware, runtime, compatibility, reasons, and evidence;
+- provenance-aware model metadata profiles that distinguish model identity from concrete artifacts;
+- read-only Ollama model inventory discovery, including local versus remote-backed registrations;
+- local read-only web dashboard for hardware, runtimes, compatibility, model metadata, reasons, and evidence;
 - normalized JSON output;
 - graceful handling of unavailable optional discovery tools and unknown values.
 
@@ -34,7 +36,8 @@ Current limitations:
 - AMD and Intel GPU enrichment beyond PCI information is not yet implemented;
 - runtime discovery currently covers Ollama, llama.cpp, and vLLM;
 - hardware/runtime compatibility currently depends on explicit positive capability evidence and may remain unknown when evidence is unavailable;
-- model compatibility and recommendation logic are not yet implemented;
+- live model inventory discovery currently uses the local Ollama API; Hugging Face and GGUF normalization exist as metadata adapters but do not yet perform remote fetching or arbitrary file scanning;
+- model compatibility, hardware-fit estimation, and recommendation logic are not yet implemented;
 - benchmark execution and comparison are not yet implemented.
 
 Planned areas include:
@@ -85,6 +88,29 @@ Absolute custom filesystem paths are used only for discovery and are not include
 
 Runtime discovery reports installation availability and metadata such as versions and supported executable names. It does **not** start services or claim that an installed runtime is currently running.
 
+## Discover Model Metadata
+
+Model Advisor can read model registration metadata from a locally running Ollama service without starting, downloading, or deleting models:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor models
+
+The normalized Model Profile separates model identity from concrete model artifacts. Current metadata may include:
+
+- exact parameter counts when explicitly reported by upstream metadata;
+- approximate parameter-size labels kept separately from exact counts;
+- architecture and context length;
+- capabilities;
+- model format and quantization;
+- artifact size for locally stored registrations;
+- artifact digest;
+- field-level provenance indicating whether metadata was reported, derived, or assumed.
+
+Ollama registrations are explicitly classified as `local` or `remote`. Remote-backed registrations remain visible, but their remote host/model values are not exposed and their small local registration size is not reported as model-weight size.
+
+Missing metadata remains unknown rather than being inferred from model names.
+
+Model Advisor also contains normalization adapters for Hugging Face model metadata and GGUF metadata. M05 does not yet perform live Hugging Face fetching or arbitrary GGUF filesystem discovery.
+
 ## Check Hardware/Runtime Compatibility
 
 Model Advisor can combine detected hardware, installed runtimes, and read-only runtime capability evidence:
@@ -130,7 +156,7 @@ For a custom llama.cpp installation:
 
 The dashboard shows compatibility conclusions alongside their reasons and evidence. The same conservative evidence rules apply as in the command-line compatibility output: missing evidence remains unknown rather than being treated as incompatibility.
 
-The dashboard currently presents implemented hardware, runtime, and compatibility capabilities only. Model-fit recommendations, quantization guidance, benchmark results, confidence scoring, and concurrency estimates are not yet implemented.
+The dashboard presents implemented hardware, runtime, compatibility, and Ollama model-metadata capabilities. It clearly distinguishes locally stored artifacts from remote-backed registrations and exposes metadata provenance. Model-fit recommendations, quantization guidance, benchmark results, confidence scoring, and concurrency estimates are not yet implemented.
 
 ## Contributing
 
