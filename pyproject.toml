@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "liongateos-model-advisor"
+version = "0.1.0.dev0"
+description = "Know what AI your machine should run."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "LionGateOS" }
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

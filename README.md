@@ -8,13 +8,30 @@ The goal is to reduce wasted time downloading, configuring, and testing models t
 
 ## Project Status
 
-This repository is at the beginning of public development.
+Model Advisor is in early public development.
 
-The public project has been established, but the Model Advisor implementation is not yet published.
+The first implemented capability is a normalized hardware profile.
+
+Current capabilities include:
+
+- automatic Linux detection of operating system, CPU, system RAM, and PCI graphics devices;
+- NVIDIA GPU enrichment through `nvidia-smi` when available, including model, VRAM, and driver version;
+- basic vendor and device identification from PCI information;
+- manual hardware entry when automatic discovery is unavailable or unwanted;
+- normalized JSON output;
+- graceful handling of unavailable optional discovery tools and unknown values.
+
+Current limitations:
+
+- automatic hardware discovery is currently Linux-focused;
+- AMD and Intel GPU enrichment beyond PCI information is not yet implemented;
+- runtime discovery is not yet implemented;
+- model compatibility and recommendation logic are not yet implemented;
+- benchmark execution and comparison are not yet implemented.
 
 Planned areas include:
 
-- hardware discovery and manual hardware entry;
+- broader NVIDIA, AMD, Intel, Apple Silicon, and CPU support;
 - local AI runtime discovery;
 - model and runtime compatibility information;
 - VRAM, RAM, storage, and offload estimates;
@@ -23,9 +40,21 @@ Planned areas include:
 - reproducible model benchmarks;
 - benchmark comparison and history;
 - clear explanations for non-expert users;
-- themes and accessibility improvements.
+- themes, accessibility, and translations.
 
-The project does **not** currently provide automatic model installation, automatic model downloading, autonomous execution, or unattended AI orchestration.
+The project does **not** provide automatic model installation, automatic model downloading, autonomous execution, or unattended AI orchestration.
+
+## Try the Hardware Profile
+
+From the repository root:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor
+
+For manual hardware entry:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor --manual
+
+The output is a normalized JSON hardware profile. Unknown values remain unknown rather than being guessed.
 
 ## Contributing
 
