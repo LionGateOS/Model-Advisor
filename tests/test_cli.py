@@ -6,6 +6,11 @@ from unittest.mock import patch
 
 from liongateos_model_advisor.cli import main
 from liongateos_model_advisor.hardware_profile import CPU, HardwareProfile
+from liongateos_model_advisor.model_profile import (
+    ModelArtifact,
+    ModelIdentity,
+    ModelProfile,
+)
 from liongateos_model_advisor.runtime_profile import Runtime, RuntimeProfile
 
 
@@ -147,6 +152,43 @@ class CLITests(unittest.TestCase):
             (),
         )
         self.assertNotIn("/private/example", output.getvalue())
+
+
+    @patch("liongateos_model_advisor.cli.discover_ollama_models")
+    def test_models_command_outputs_local_model_profile(self, discover):
+        discover.return_value = ModelProfile(
+            models=(
+                ModelIdentity(
+                    model_id="ollama:example:latest",
+                    parameter_count=7_000_000_000,
+                ),
+            ),
+            artifacts=(
+                ModelArtifact(
+                    artifact_id="ollama:example:latest:artifact",
+                    model_id="ollama:example:latest",
+                    digest="sha256:abc123",
+                    format="gguf",
+                ),
+            ),
+        )
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(["models"])
+
+        data = json.loads(output.getvalue())
+
+        self.assertEqual(result, 0)
+        self.assertEqual(
+            data["models"][0]["model_id"],
+            "ollama:example:latest",
+        )
+        self.assertEqual(
+            data["artifacts"][0]["digest"],
+            "sha256:abc123",
+        )
+        discover.assert_called_once_with()
 
 
     @patch("liongateos_model_advisor.cli.create_dashboard_server")

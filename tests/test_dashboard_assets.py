@@ -49,6 +49,8 @@ class DashboardAssetTests(unittest.TestCase):
         )
         self.assertIn("LionGateOS Model Advisor", body)
         self.assertIn('id="runtime-list"', body)
+        self.assertIn('id="model-list"', body)
+        self.assertIn('id="model-summary"', body)
 
     def test_theme_exposes_semantic_liongateos_tokens(self):
         response, body = self.read("/theme.css")
@@ -76,6 +78,15 @@ class DashboardAssetTests(unittest.TestCase):
         self.assertEqual(response.status, 200)
         self.assertIn('fetch("/api/dashboard"', body)
         self.assertIn("Why / Evidence", body)
+        self.assertIn("renderModels", body)
+        self.assertIn("Metadata evidence", body)
+        self.assertIn("Not locally stored", body)
+        self.assertIn("Same as exact count", body)
+        self.assertIn("formatSizeLabel", body)
+        self.assertIn("artifact.location", body)
+        self.assertIn("inventory partial", body)
+        self.assertIn("Ollama metadata source unavailable", body)
+        self.assertIn("Ollama metadata source error", body)
         self.assertNotIn("innerHTML", body)
 
 

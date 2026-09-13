@@ -154,7 +154,8 @@ footer {
 
 .fact,
 .device-card,
-.runtime-card {
+.runtime-card,
+.model-card {
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-md);
   background: var(--lg-surface-subtle);
@@ -189,7 +190,8 @@ footer {
 }
 
 .device-meta,
-.runtime-meta {
+.runtime-meta,
+.model-meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
   gap: var(--lg-space-2);
@@ -199,6 +201,74 @@ footer {
 .meta-value {
   overflow-wrap: anywhere;
   color: var(--lg-text);
+}
+
+.model-heading-meta {
+  text-align: right;
+}
+
+.model-summary {
+  margin-bottom: 0.2rem;
+  color: var(--lg-text);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--lg-space-3);
+}
+
+.model-card {
+  padding: var(--lg-space-3);
+}
+
+.model-topline {
+  display: flex;
+  gap: var(--lg-space-3);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.model-name {
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+
+.model-provider {
+  margin-top: 0.15rem;
+  color: var(--lg-text-muted);
+  font-size: 0.82rem;
+}
+
+.location-badge {
+  flex: none;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0.22rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.location-local {
+  color: var(--lg-success);
+}
+
+.location-remote {
+  color: var(--lg-info);
+}
+
+.location-unknown {
+  color: var(--lg-text-muted);
+}
+
+.metadata-evidence-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  overflow-wrap: anywhere;
 }
 
 .runtime-list {
@@ -308,7 +378,8 @@ footer p {
     flex-direction: column;
   }
 
-  .section-note {
+  .section-note,
+  .model-heading-meta {
     text-align: left;
   }
 

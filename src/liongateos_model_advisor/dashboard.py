@@ -7,6 +7,7 @@ from typing import Any, Sequence
 from .capability_discovery import collect_runtime_capability_evidence
 from .compatibility import assess_compatibility
 from .discovery import discover_hardware
+from .model_discovery import discover_ollama_models
 from .runtime_discovery import discover_runtimes
 
 
@@ -29,9 +30,11 @@ def collect_dashboard_data(
         runtimes,
         evidence,
     )
+    models = discover_ollama_models()
 
     return {
         "hardware": hardware.to_dict(),
         "runtimes": runtimes.to_dict(),
         "compatibility": compatibility.to_dict(),
+        "models": models.to_dict(),
     }
