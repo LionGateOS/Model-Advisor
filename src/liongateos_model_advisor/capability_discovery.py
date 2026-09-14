@@ -59,6 +59,8 @@ def probe_llama_cpp(
     if not output:
         return None
 
+    help_output = _run_probe([executable, "--help"]) or ""
+
     backends: list[str] = []
     vendors: list[str] = []
     models: list[str] = []
@@ -95,6 +97,21 @@ def probe_llama_cpp(
         gpu_backend=backend,
         gpu_vendors=tuple(dict.fromkeys(vendors)),
         gpu_models=tuple(dict.fromkeys(models)),
+        supports_multi_device=(
+            "--device" in help_output and "--tensor-split" in help_output
+        ) if help_output else None,
+        supports_gpu_offload=(
+            "--gpu-layers" in help_output
+        ) if help_output else None,
+        supported_split_modes=(
+            tuple(match.group(1).split(","))
+            if (match := re.search(r"--split-mode\s+\{([^}]+)\}", help_output))
+            else ()
+        ),
+        supports_auto_fit=(
+            "--fit " in help_output or "--fit [" in help_output
+        ) if help_output else None,
+        feature_source="llama-help" if help_output else None,
         source="llama-list-devices",
     )
 

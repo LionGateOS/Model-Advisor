@@ -247,11 +247,37 @@ class ModelArtifact:
 
 
 @dataclass(frozen=True)
+class ModelOffering:
+    """One hosted/provider model offering."""
+
+    offering_id: str
+    source: str
+    provider_model_id: str
+    model_id: str | None = None
+    context_length: int | None = None
+    input_modalities: tuple[str, ...] = ()
+    output_modalities: tuple[str, ...] = ()
+    supported_parameters: tuple[str, ...] = ()
+    evidence: tuple[MetadataEvidence, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not self.offering_id:
+            raise ValueError("offering_id must not be empty")
+        if not self.source:
+            raise ValueError("offering source must not be empty")
+        if not self.provider_model_id:
+            raise ValueError("provider_model_id must not be empty")
+        if self.context_length is not None and self.context_length <= 0:
+            raise ValueError("offering context_length must be positive")
+
+
+@dataclass(frozen=True)
 class ModelProfile:
     """Normalized collection of model identities and concrete artifacts."""
 
     models: tuple[ModelIdentity, ...] = ()
     artifacts: tuple[ModelArtifact, ...] = ()
+    offerings: tuple[ModelOffering, ...] = ()
     sources: tuple[ModelSourceStatus, ...] = ()
     schema_version: str = MODEL_SCHEMA_VERSION
 
@@ -271,7 +297,16 @@ class ModelProfile:
         if len(artifact_ids) != len(set(artifact_ids)):
             raise ValueError("duplicate artifact_id in model profile")
 
+        offering_ids = [item.offering_id for item in self.offerings]
+
+        if len(offering_ids) != len(set(offering_ids)):
+            raise ValueError("duplicate offering_id in model profile")
+
         known_models = set(model_ids)
+
+        for offering in self.offerings:
+            if offering.model_id is not None and offering.model_id not in known_models:
+                raise ValueError("offering references unknown model_id: " + offering.model_id)
 
         for artifact in self.artifacts:
             if artifact.model_id not in known_models:

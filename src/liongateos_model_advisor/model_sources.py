@@ -111,6 +111,8 @@ def profile_from_huggingface_model_info(
 
     card_data = _mapping(payload.get("cardData"))
     tags = _strings(payload.get("tags"))
+    config = _mapping(payload.get("config"))
+    gguf = _mapping(payload.get("gguf"))
 
     display_name = _clean_string(card_data.get("model_name"))
 
@@ -154,6 +156,54 @@ def profile_from_huggingface_model_info(
             MetadataEvidence(
                 field="license",
                 source=source,
+                kind="reported",
+            )
+        )
+
+    architecture = _clean_string(gguf.get("architecture"))
+    architecture_source = (
+        f"{source}:gguf:architecture"
+        if architecture is not None
+        else None
+    )
+
+    if architecture is None:
+        architecture = _clean_string(config.get("model_type"))
+
+        if architecture is not None:
+            architecture_source = f"{source}:config:model_type"
+
+    if architecture is not None and architecture_source is not None:
+        evidence.append(
+            MetadataEvidence(
+                field="architecture",
+                source=architecture_source,
+                kind="reported",
+            )
+        )
+
+    context_length = _positive_int(gguf.get("context_length"))
+    context_source = (
+        f"{source}:gguf:context_length"
+        if context_length is not None
+        else None
+    )
+
+    if context_length is None:
+        context_length = _positive_int(
+            config.get("max_position_embeddings")
+        )
+
+        if context_length is not None:
+            context_source = (
+                f"{source}:config:max_position_embeddings"
+            )
+
+    if context_length is not None and context_source is not None:
+        evidence.append(
+            MetadataEvidence(
+                field="context_length",
+                source=context_source,
                 kind="reported",
             )
         )
@@ -212,7 +262,9 @@ def profile_from_huggingface_model_info(
             ModelIdentity(
                 model_id=model_id,
                 display_name=display_name,
+                architecture=architecture,
                 parameter_count=parameter_count,
+                context_length=context_length,
                 tasks=tasks,
                 license=license_name,
                 evidence=tuple(evidence),
@@ -220,7 +272,6 @@ def profile_from_huggingface_model_info(
         ),
         artifacts=artifacts,
     )
-
 
 def profile_from_ollama_show(
     model_name: str,

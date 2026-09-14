@@ -191,6 +191,36 @@ class CLITests(unittest.TestCase):
         discover.assert_called_once_with()
 
 
+    @patch("liongateos_model_advisor.cli.discover_huggingface_models")
+    def test_models_command_selects_huggingface(self, discover):
+        discover.return_value = ModelProfile(
+            models=(ModelIdentity(model_id="huggingface:test/model"),)
+        )
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(["models", "--model-source", "huggingface"])
+        self.assertEqual(result, 0)
+        self.assertEqual(
+            json.loads(output.getvalue())["models"][0]["model_id"],
+            "huggingface:test/model",
+        )
+        discover.assert_called_once_with()
+
+    @patch("liongateos_model_advisor.cli.discover_openrouter_models")
+    def test_models_command_selects_openrouter(self, discover):
+        discover.return_value = ModelProfile(
+            models=(ModelIdentity(model_id="openrouter:test/model"),)
+        )
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(["models", "--model-source", "openrouter"])
+        self.assertEqual(result, 0)
+        self.assertEqual(
+            json.loads(output.getvalue())["models"][0]["model_id"],
+            "openrouter:test/model",
+        )
+        discover.assert_called_once_with()
+
     @patch("liongateos_model_advisor.cli.create_dashboard_server")
     def test_dashboard_command_starts_local_server(self, create_server):
         class FakeServer:

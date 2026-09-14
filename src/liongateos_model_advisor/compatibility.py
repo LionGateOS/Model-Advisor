@@ -16,6 +16,11 @@ class RuntimeCapabilityEvidence:
     gpu_vendors: tuple[str, ...] = ()
     gpu_models: tuple[str, ...] = ()
     active_gpu_execution: bool = False
+    supports_multi_device: bool | None = None
+    supports_gpu_offload: bool | None = None
+    supported_split_modes: tuple[str, ...] = ()
+    supports_auto_fit: bool | None = None
+    feature_source: str | None = None
     source: str | None = None
 
 

@@ -38,6 +38,35 @@ class CapabilityDiscoveryTests(unittest.TestCase):
         )
         self.assertEqual(evidence.source, "llama-list-devices")
 
+    @patch(
+        "liongateos_model_advisor.capability_discovery._find_llama_executables"
+    )
+    @patch("liongateos_model_advisor.capability_discovery._run_probe")
+    def test_llama_cpp_reports_multi_gpu_features(self, run_probe, find_executables):
+        find_executables.return_value = (
+            {"llama-cli": "/example/llama-cli"},
+            ("custom-path",),
+        )
+        run_probe.side_effect = [
+            "CUDA0: NVIDIA GeForce RTX 3090 Ti\nCUDA1: NVIDIA GeForce RTX 3090\n",
+            "--device <dev1,dev2>\n"
+            "--gpu-layers N\n"
+            "--split-mode {none,layer,row,tensor}\n"
+            "--tensor-split N0,N1\n"
+            "--fit [on|off]\n",
+        ]
+
+        evidence = probe_llama_cpp()
+
+        self.assertTrue(evidence.supports_multi_device)
+        self.assertTrue(evidence.supports_gpu_offload)
+        self.assertEqual(
+            evidence.supported_split_modes,
+            ("none", "layer", "row", "tensor"),
+        )
+        self.assertTrue(evidence.supports_auto_fit)
+        self.assertEqual(evidence.feature_source, "llama-help")
+
     @patch("liongateos_model_advisor.capability_discovery.shutil.which")
     @patch("liongateos_model_advisor.capability_discovery._run_probe")
     def test_vllm_reports_cuda_environment(self, run_probe, which):

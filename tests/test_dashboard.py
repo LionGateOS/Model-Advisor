@@ -17,6 +17,8 @@ from liongateos_model_advisor.runtime_profile import Runtime, RuntimeProfile
 
 
 class DashboardDataTests(unittest.TestCase):
+    @patch("liongateos_model_advisor.dashboard.discover_openrouter_models")
+    @patch("liongateos_model_advisor.dashboard.discover_huggingface_models")
     @patch("liongateos_model_advisor.dashboard.discover_ollama_models")
     @patch("liongateos_model_advisor.dashboard.assess_compatibility")
     @patch(
@@ -31,6 +33,8 @@ class DashboardDataTests(unittest.TestCase):
         collect_evidence,
         assess,
         discover_models,
+        discover_huggingface,
+        discover_openrouter,
     ):
         hardware = HardwareProfile(
             cpu=CPU(model="Example CPU"),
@@ -87,6 +91,9 @@ class DashboardDataTests(unittest.TestCase):
             ),
         )
 
+        discover_huggingface.return_value = ModelProfile()
+        discover_openrouter.return_value = ModelProfile()
+
         data = collect_dashboard_data(
             ["/private/example/llama.cpp/bin"]
         )
@@ -130,6 +137,8 @@ class DashboardDataTests(unittest.TestCase):
             ("example-evidence",),
         )
         discover_models.assert_called_once_with()
+        discover_huggingface.assert_called_once_with()
+        discover_openrouter.assert_called_once_with()
 
 
 if __name__ == "__main__":
