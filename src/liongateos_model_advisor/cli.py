@@ -12,6 +12,8 @@ from .dashboard_server import create_dashboard_server
 from .discovery import discover_hardware
 from .manual import enter_hardware_manually
 from .model_discovery import discover_ollama_models
+from .catalog_discovery import discover_huggingface_models
+from .openrouter_discovery import discover_openrouter_models
 from .runtime_discovery import discover_runtimes
 
 
@@ -53,6 +55,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         ),
     )
 
+    parser.add_argument(
+        "--model-source",
+        choices=("local", "huggingface", "openrouter"),
+        default="local",
+    )
+
     args = parser.parse_args(argv)
 
     if args.command == "dashboard":
@@ -82,7 +90,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "--runtime-path cannot be used with local model discovery"
             )
 
-        profile = discover_ollama_models()
+        if args.model_source == "huggingface":
+            profile = discover_huggingface_models()
+        elif args.model_source == "openrouter":
+            profile = discover_openrouter_models()
+        else:
+            profile = discover_ollama_models()
 
     elif args.command == "runtimes":
         if args.manual:

@@ -51,6 +51,8 @@ class DashboardAssetTests(unittest.TestCase):
         self.assertIn('id="runtime-list"', body)
         self.assertIn('id="model-list"', body)
         self.assertIn('id="model-summary"', body)
+        self.assertIn('id="ecosystem-list"', body)
+        self.assertIn('id="ecosystem-summary"', body)
 
     def test_theme_exposes_semantic_liongateos_tokens(self):
         response, body = self.read("/theme.css")
@@ -79,6 +81,9 @@ class DashboardAssetTests(unittest.TestCase):
         self.assertIn('fetch("/api/dashboard"', body)
         self.assertIn("Why / Evidence", body)
         self.assertIn("renderModels", body)
+        self.assertIn("renderEcosystem", body)
+        self.assertIn("Hugging Face", body)
+        self.assertIn("OpenRouter", body)
         self.assertIn("Metadata evidence", body)
         self.assertIn("Not locally stored", body)
         self.assertIn("Same as exact count", body)

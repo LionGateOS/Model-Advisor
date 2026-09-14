@@ -7,6 +7,8 @@ const gpuNode = document.querySelector("#gpu-list");
 const runtimeNode = document.querySelector("#runtime-list");
 const modelNode = document.querySelector("#model-list");
 const modelSummaryNode = document.querySelector("#model-summary");
+const ecosystemNode = document.querySelector("#ecosystem-list");
+const ecosystemSummaryNode = document.querySelector("#ecosystem-summary");
 
 function known(value, fallback = "Unknown") {
   if (value === null || value === undefined || value === "") {
@@ -481,6 +483,46 @@ function renderModels(profile) {
   });
 }
 
+function renderEcosystem(huggingfaceProfile, openrouterProfile) {
+  ecosystemNode.replaceChildren();
+
+  const hfModels = Array.isArray(huggingfaceProfile.models)
+    ? huggingfaceProfile.models : [];
+  const offerings = Array.isArray(openrouterProfile.offerings)
+    ? openrouterProfile.offerings : [];
+
+  ecosystemSummaryNode.textContent =
+    `${hfModels.length} Hugging Face models · `
+    + `${offerings.length} OpenRouter offerings`;
+
+  hfModels.slice(0, 6).forEach((model) => {
+    const card = element("article", "model-card");
+    card.append(
+      element("h3", "model-name", known(model.display_name, model.model_id)),
+      element("div", "model-provider", "Hugging Face"),
+    );
+    const meta = element("div", "model-meta");
+    addMeta(meta, "Parameters", formatInteger(model.parameter_count));
+    addMeta(meta, "Context", formatInteger(model.context_length));
+    addMeta(meta, "Architecture", model.architecture);
+    card.append(meta);
+    ecosystemNode.append(card);
+  });
+
+  offerings.slice(0, 6).forEach((offering) => {
+    const card = element("article", "model-card");
+    card.append(
+      element("h3", "model-name", offering.provider_model_id),
+      element("div", "model-provider", "OpenRouter"),
+    );
+    const meta = element("div", "model-meta");
+    addMeta(meta, "Context", formatInteger(offering.context_length));
+    addMeta(meta, "Linked model", offering.model_id);
+    card.append(meta);
+    ecosystemNode.append(card);
+  });
+}
+
 async function refreshDashboard() {
   refreshButton.disabled = true;
   statusNode.classList.remove("error");
@@ -504,6 +546,10 @@ async function refreshDashboard() {
       data.compatibility || {},
     );
     renderModels(data.models || {});
+    renderEcosystem(
+      data.huggingface_models || {},
+      data.openrouter_models || {},
+    );
 
     statusNode.textContent = "Current machine and model evidence loaded.";
   } catch (error) {

@@ -6,6 +6,7 @@ from liongateos_model_advisor.model_profile import (
     MetadataEvidence,
     ModelArtifact,
     ModelIdentity,
+    ModelOffering,
     ModelProfile,
     ModelSourceStatus,
 )
@@ -202,6 +203,53 @@ class ModelProfileTests(unittest.TestCase):
                 source="example-source",
                 status="guess",  # type: ignore[arg-type]
             )
+
+    def test_hosted_offering_serializes(self):
+        profile = ModelProfile(
+            models=(ModelIdentity(model_id="example/model"),),
+            offerings=(
+                ModelOffering(
+                    offering_id="openrouter:example/model",
+                    source="openrouter-api",
+                    provider_model_id="example/model",
+                    model_id="example/model",
+                    context_length=131_072,
+                    input_modalities=("text",),
+                    output_modalities=("text",),
+                    supported_parameters=("temperature", "top_p"),
+                ),
+            ),
+        )
+
+        offering = profile.to_dict()["offerings"][0]
+        self.assertEqual(offering["source"], "openrouter-api")
+        self.assertEqual(offering["context_length"], 131_072)
+
+    def test_unlinked_hosted_offering_is_allowed(self):
+        profile = ModelProfile(
+            offerings=(
+                ModelOffering(
+                    offering_id="openrouter:provider-only",
+                    source="openrouter-api",
+                    provider_model_id="provider-only",
+                ),
+            ),
+        )
+        self.assertIsNone(profile.offerings[0].model_id)
+
+    def test_offering_link_must_reference_known_model(self):
+        with self.assertRaises(ValueError):
+            ModelProfile(
+                offerings=(
+                    ModelOffering(
+                        offering_id="openrouter:missing",
+                        source="openrouter-api",
+                        provider_model_id="missing",
+                        model_id="missing/model",
+                    ),
+                ),
+            )
+
 
     def test_artifact_must_reference_known_model(self):
         with self.assertRaises(ValueError):
