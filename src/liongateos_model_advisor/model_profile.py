@@ -98,6 +98,21 @@ class ModelIdentity:
     parameter_size_label: str | None = None
     active_parameter_count: int | None = None
     context_length: int | None = None
+    block_count: int | None = None
+    embedding_length: int | None = None
+    attention_head_count: int | tuple[int, ...] | None = None
+    attention_head_count_kv: int | tuple[int, ...] | None = None
+    attention_key_length: int | None = None
+    attention_value_length: int | None = None
+    nextn_predict_layers: int | None = None
+    full_attention_interval: int | None = None
+    attention_recurrent_layers: tuple[bool, ...] | None = None
+    attention_sliding_window: int | None = None
+    ssm_conv_kernel: int | None = None
+    ssm_group_count: int | None = None
+    ssm_inner_size: int | None = None
+    ssm_state_size: int | None = None
+    ssm_time_step_rank: int | None = None
     tasks: tuple[str, ...] = ()
     capabilities: tuple[str, ...] = ()
     license: str | None = None
@@ -129,6 +144,77 @@ class ModelIdentity:
 
         if self.context_length is not None and self.context_length <= 0:
             raise ValueError("context_length must be positive when known")
+
+        for field_name, value in (
+            ("block_count", self.block_count),
+            ("embedding_length", self.embedding_length),
+            ("attention_key_length", self.attention_key_length),
+            ("attention_value_length", self.attention_value_length),
+            ("nextn_predict_layers", self.nextn_predict_layers),
+            ("full_attention_interval", self.full_attention_interval),
+            ("attention_sliding_window", self.attention_sliding_window),
+            ("ssm_conv_kernel", self.ssm_conv_kernel),
+            ("ssm_group_count", self.ssm_group_count),
+            ("ssm_inner_size", self.ssm_inner_size),
+            ("ssm_state_size", self.ssm_state_size),
+            ("ssm_time_step_rank", self.ssm_time_step_rank),
+        ):
+            if value is not None and value <= 0:
+                raise ValueError(
+                    f"{field_name} must be positive when known"
+                )
+
+        for field_name, value in (
+            ("attention_head_count", self.attention_head_count),
+            ("attention_head_count_kv", self.attention_head_count_kv),
+        ):
+            if isinstance(value, tuple):
+                if not value or any(item <= 0 for item in value):
+                    raise ValueError(
+                        f"{field_name} entries must be positive"
+                    )
+            elif value is not None and value <= 0:
+                raise ValueError(
+                    f"{field_name} must be positive when known"
+                )
+
+        if (
+            self.nextn_predict_layers is not None
+            and self.block_count is not None
+            and self.nextn_predict_layers > self.block_count
+        ):
+            raise ValueError(
+                "nextn_predict_layers cannot exceed block_count"
+            )
+
+        if self.attention_recurrent_layers is not None:
+            if (
+                not self.attention_recurrent_layers
+                or not all(
+                    isinstance(item, bool)
+                    for item in self.attention_recurrent_layers
+                )
+            ):
+                raise ValueError(
+                    "attention_recurrent_layers must contain booleans"
+                )
+
+        if self.block_count is not None:
+            for field_name, value in (
+                ("attention_head_count", self.attention_head_count),
+                ("attention_head_count_kv", self.attention_head_count_kv),
+                (
+                    "attention_recurrent_layers",
+                    self.attention_recurrent_layers,
+                ),
+            ):
+                if (
+                    isinstance(value, tuple)
+                    and len(value) != self.block_count
+                ):
+                    raise ValueError(
+                        f"{field_name} layer count must match block_count"
+                    )
 
 
 @dataclass(frozen=True)

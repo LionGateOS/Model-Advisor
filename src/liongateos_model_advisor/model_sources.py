@@ -32,6 +32,40 @@ def _positive_int(value: object) -> int | None:
     return None
 
 
+def _positive_int_or_tuple(
+    value: object,
+) -> int | tuple[int, ...] | None:
+    scalar = _positive_int(value)
+
+    if scalar is not None:
+        return scalar
+
+    if isinstance(value, (list, tuple)) and value:
+        cleaned: list[int] = []
+
+        for item in value:
+            number = _positive_int(item)
+
+            if number is None:
+                return None
+
+            cleaned.append(number)
+
+        return tuple(cleaned)
+
+    return None
+
+
+def _bool_tuple(value: object) -> tuple[bool, ...] | None:
+    if not isinstance(value, (list, tuple)) or not value:
+        return None
+
+    if not all(isinstance(item, bool) for item in value):
+        return None
+
+    return tuple(value)
+
+
 def _strings(value: object) -> tuple[str, ...]:
     if not isinstance(value, (list, tuple)):
         return ()
@@ -238,6 +272,70 @@ def profile_from_ollama_show(
 
     capabilities = _strings(payload.get("capabilities"))
 
+    block_count = None
+    embedding_length = None
+    attention_head_count = None
+    attention_head_count_kv = None
+    attention_key_length = None
+    attention_value_length = None
+    nextn_predict_layers = None
+    full_attention_interval = None
+    attention_recurrent_layers = None
+    attention_sliding_window = None
+    ssm_conv_kernel = None
+    ssm_group_count = None
+    ssm_inner_size = None
+    ssm_state_size = None
+    ssm_time_step_rank = None
+
+    if architecture is not None:
+        prefix = f"{architecture}."
+        block_count = _positive_int(
+            model_info.get(prefix + "block_count")
+        )
+        embedding_length = _positive_int(
+            model_info.get(prefix + "embedding_length")
+        )
+        attention_head_count = _positive_int_or_tuple(
+            model_info.get(prefix + "attention.head_count")
+        )
+        attention_head_count_kv = _positive_int_or_tuple(
+            model_info.get(prefix + "attention.head_count_kv")
+        )
+        attention_key_length = _positive_int(
+            model_info.get(prefix + "attention.key_length")
+        )
+        attention_value_length = _positive_int(
+            model_info.get(prefix + "attention.value_length")
+        )
+        nextn_predict_layers = _positive_int(
+            model_info.get(prefix + "nextn_predict_layers")
+        )
+        full_attention_interval = _positive_int(
+            model_info.get(prefix + "full_attention_interval")
+        )
+        attention_recurrent_layers = _bool_tuple(
+            model_info.get(prefix + "attention.recurrent_layers")
+        )
+        attention_sliding_window = _positive_int(
+            model_info.get(prefix + "attention.sliding_window")
+        )
+        ssm_conv_kernel = _positive_int(
+            model_info.get(prefix + "ssm.conv_kernel")
+        )
+        ssm_group_count = _positive_int(
+            model_info.get(prefix + "ssm.group_count")
+        )
+        ssm_inner_size = _positive_int(
+            model_info.get(prefix + "ssm.inner_size")
+        )
+        ssm_state_size = _positive_int(
+            model_info.get(prefix + "ssm.state_size")
+        )
+        ssm_time_step_rank = _positive_int(
+            model_info.get(prefix + "ssm.time_step_rank")
+        )
+
     license_name = _clean_string(model_info.get("general.license"))
 
     evidence: list[MetadataEvidence] = []
@@ -260,6 +358,141 @@ def profile_from_ollama_show(
             f"{source}:model_info:general.parameter_count",
         ),
         ("context_length", context_length, context_source),
+        (
+            "block_count",
+            block_count,
+            (
+                f"{source}:model_info:{architecture}.block_count"
+                if architecture is not None
+                else None
+            ),
+        ),
+        (
+            "embedding_length",
+            embedding_length,
+            (
+                f"{source}:model_info:{architecture}.embedding_length"
+                if architecture is not None
+                else None
+            ),
+        ),
+        (
+            "attention_head_count",
+            attention_head_count,
+            (
+                f"{source}:model_info:{architecture}.attention.head_count"
+                if architecture is not None
+                else None
+            ),
+        ),
+        (
+            "attention_head_count_kv",
+            attention_head_count_kv,
+            (
+                f"{source}:model_info:{architecture}.attention.head_count_kv"
+                if architecture is not None
+                else None
+            ),
+        ),
+        (
+            "attention_key_length",
+            attention_key_length,
+            (
+                f"{source}:model_info:{architecture}.attention.key_length"
+                if architecture is not None
+                else None
+            ),
+        ),
+        (
+            "attention_value_length",
+            attention_value_length,
+            (
+                f"{source}:model_info:{architecture}.attention.value_length"
+                if architecture is not None
+                else None
+            ),
+        ),
+        (
+            "nextn_predict_layers",
+            nextn_predict_layers,
+            (
+                f"{source}:model_info:{architecture}.nextn_predict_layers"
+                if architecture is not None
+                else None
+            ),
+        ),
+        (
+            "full_attention_interval",
+            full_attention_interval,
+            (
+                f"{source}:model_info:{architecture}.full_attention_interval"
+                if architecture is not None
+                else None
+            ),
+        ),
+        (
+            "attention_recurrent_layers",
+            attention_recurrent_layers,
+            (
+                f"{source}:model_info:{architecture}.attention.recurrent_layers"
+                if architecture is not None
+                else None
+            ),
+        ),
+        (
+            "attention_sliding_window",
+            attention_sliding_window,
+            (
+                f"{source}:model_info:{architecture}.attention.sliding_window"
+                if architecture is not None
+                else None
+            ),
+        ),
+        (
+            "ssm_conv_kernel",
+            ssm_conv_kernel,
+            (
+                f"{source}:model_info:{architecture}.ssm.conv_kernel"
+                if architecture is not None
+                else None
+            ),
+        ),
+        (
+            "ssm_group_count",
+            ssm_group_count,
+            (
+                f"{source}:model_info:{architecture}.ssm.group_count"
+                if architecture is not None
+                else None
+            ),
+        ),
+        (
+            "ssm_inner_size",
+            ssm_inner_size,
+            (
+                f"{source}:model_info:{architecture}.ssm.inner_size"
+                if architecture is not None
+                else None
+            ),
+        ),
+        (
+            "ssm_state_size",
+            ssm_state_size,
+            (
+                f"{source}:model_info:{architecture}.ssm.state_size"
+                if architecture is not None
+                else None
+            ),
+        ),
+        (
+            "ssm_time_step_rank",
+            ssm_time_step_rank,
+            (
+                f"{source}:model_info:{architecture}.ssm.time_step_rank"
+                if architecture is not None
+                else None
+            ),
+        ),
         ("capabilities", capabilities, f"{source}:capabilities"),
         (
             "license",
@@ -336,6 +569,21 @@ def profile_from_ollama_show(
                 parameter_count=parameter_count,
                 parameter_size_label=parameter_size_label,
                 context_length=context_length,
+                block_count=block_count,
+                embedding_length=embedding_length,
+                attention_head_count=attention_head_count,
+                attention_head_count_kv=attention_head_count_kv,
+                attention_key_length=attention_key_length,
+                attention_value_length=attention_value_length,
+                nextn_predict_layers=nextn_predict_layers,
+                full_attention_interval=full_attention_interval,
+                attention_recurrent_layers=attention_recurrent_layers,
+                attention_sliding_window=attention_sliding_window,
+                ssm_conv_kernel=ssm_conv_kernel,
+                ssm_group_count=ssm_group_count,
+                ssm_inner_size=ssm_inner_size,
+                ssm_state_size=ssm_state_size,
+                ssm_time_step_rank=ssm_time_step_rank,
                 capabilities=capabilities,
                 license=license_name,
                 evidence=tuple(evidence),
@@ -389,10 +637,70 @@ def profile_from_gguf_metadata(
 
     context_length = None
     context_key = None
+    block_count = None
+    embedding_length = None
+    attention_head_count = None
+    attention_head_count_kv = None
+    attention_key_length = None
+    attention_value_length = None
+    nextn_predict_layers = None
+    full_attention_interval = None
+    attention_recurrent_layers = None
+    attention_sliding_window = None
+    ssm_conv_kernel = None
+    ssm_group_count = None
+    ssm_inner_size = None
+    ssm_state_size = None
+    ssm_time_step_rank = None
 
     if architecture is not None:
         context_key = f"{architecture}.context_length"
         context_length = _positive_int(metadata.get(context_key))
+        block_count = _positive_int(
+            metadata.get(f"{architecture}.block_count")
+        )
+        embedding_length = _positive_int(
+            metadata.get(f"{architecture}.embedding_length")
+        )
+        attention_head_count = _positive_int_or_tuple(
+            metadata.get(f"{architecture}.attention.head_count")
+        )
+        attention_head_count_kv = _positive_int_or_tuple(
+            metadata.get(f"{architecture}.attention.head_count_kv")
+        )
+        attention_key_length = _positive_int(
+            metadata.get(f"{architecture}.attention.key_length")
+        )
+        attention_value_length = _positive_int(
+            metadata.get(f"{architecture}.attention.value_length")
+        )
+        nextn_predict_layers = _positive_int(
+            metadata.get(f"{architecture}.nextn_predict_layers")
+        )
+        full_attention_interval = _positive_int(
+            metadata.get(f"{architecture}.full_attention_interval")
+        )
+        attention_recurrent_layers = _bool_tuple(
+            metadata.get(f"{architecture}.attention.recurrent_layers")
+        )
+        attention_sliding_window = _positive_int(
+            metadata.get(f"{architecture}.attention.sliding_window")
+        )
+        ssm_conv_kernel = _positive_int(
+            metadata.get(f"{architecture}.ssm.conv_kernel")
+        )
+        ssm_group_count = _positive_int(
+            metadata.get(f"{architecture}.ssm.group_count")
+        )
+        ssm_inner_size = _positive_int(
+            metadata.get(f"{architecture}.ssm.inner_size")
+        )
+        ssm_state_size = _positive_int(
+            metadata.get(f"{architecture}.ssm.state_size")
+        )
+        ssm_time_step_rank = _positive_int(
+            metadata.get(f"{architecture}.ssm.time_step_rank")
+        )
 
     evidence: list[MetadataEvidence] = []
 
@@ -428,6 +736,69 @@ def profile_from_gguf_metadata(
                 kind="reported",
             )
         )
+
+    if architecture is not None:
+        for field, value, suffix in (
+            ("block_count", block_count, "block_count"),
+            ("embedding_length", embedding_length, "embedding_length"),
+            (
+                "attention_head_count",
+                attention_head_count,
+                "attention.head_count",
+            ),
+            (
+                "attention_head_count_kv",
+                attention_head_count_kv,
+                "attention.head_count_kv",
+            ),
+            (
+                "attention_key_length",
+                attention_key_length,
+                "attention.key_length",
+            ),
+            (
+                "attention_value_length",
+                attention_value_length,
+                "attention.value_length",
+            ),
+            (
+                "nextn_predict_layers",
+                nextn_predict_layers,
+                "nextn_predict_layers",
+            ),
+            (
+                "full_attention_interval",
+                full_attention_interval,
+                "full_attention_interval",
+            ),
+            (
+                "attention_recurrent_layers",
+                attention_recurrent_layers,
+                "attention.recurrent_layers",
+            ),
+            (
+                "attention_sliding_window",
+                attention_sliding_window,
+                "attention.sliding_window",
+            ),
+            ("ssm_conv_kernel", ssm_conv_kernel, "ssm.conv_kernel"),
+            ("ssm_group_count", ssm_group_count, "ssm.group_count"),
+            ("ssm_inner_size", ssm_inner_size, "ssm.inner_size"),
+            ("ssm_state_size", ssm_state_size, "ssm.state_size"),
+            (
+                "ssm_time_step_rank",
+                ssm_time_step_rank,
+                "ssm.time_step_rank",
+            ),
+        ):
+            if value is not None:
+                evidence.append(
+                    MetadataEvidence(
+                        field=field,
+                        source=f"{source}:{architecture}.{suffix}",
+                        kind="reported",
+                    )
+                )
 
     artifact_evidence = [
         MetadataEvidence(
@@ -466,6 +837,21 @@ def profile_from_gguf_metadata(
                 parameter_count=parameter_count,
                 parameter_size_label=parameter_size_label,
                 context_length=context_length,
+                block_count=block_count,
+                embedding_length=embedding_length,
+                attention_head_count=attention_head_count,
+                attention_head_count_kv=attention_head_count_kv,
+                attention_key_length=attention_key_length,
+                attention_value_length=attention_value_length,
+                nextn_predict_layers=nextn_predict_layers,
+                full_attention_interval=full_attention_interval,
+                attention_recurrent_layers=attention_recurrent_layers,
+                attention_sliding_window=attention_sliding_window,
+                ssm_conv_kernel=ssm_conv_kernel,
+                ssm_group_count=ssm_group_count,
+                ssm_inner_size=ssm_inner_size,
+                ssm_state_size=ssm_state_size,
+                ssm_time_step_rank=ssm_time_step_rank,
                 license=license_name,
                 evidence=tuple(evidence),
             ),

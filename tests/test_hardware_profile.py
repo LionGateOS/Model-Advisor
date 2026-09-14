@@ -27,7 +27,10 @@ class HardwareProfileTests(unittest.TestCase):
                 physical_cores=8,
                 logical_cpus=16,
             ),
-            memory=Memory(total_bytes=64892248 * 1024),
+            memory=Memory(
+                total_bytes=64892248 * 1024,
+                available_bytes=49302928 * 1024,
+            ),
             gpus=(
                 GPU(
                     vendor="NVIDIA",
@@ -36,6 +39,7 @@ class HardwareProfileTests(unittest.TestCase):
                     vendor_id="10de",
                     device_id="2204",
                     total_vram_bytes=24576 * 1024 * 1024,
+                    free_vram_bytes=10501 * 1024 * 1024,
                     driver_version="580.173.02",
                     detection_sources=("lspci", "nvidia-smi"),
                 ),
@@ -47,7 +51,15 @@ class HardwareProfileTests(unittest.TestCase):
 
         self.assertEqual(decoded["schema_version"], SCHEMA_VERSION)
         self.assertEqual(decoded["cpu"]["physical_cores"], 8)
+        self.assertEqual(
+            decoded["memory"]["available_bytes"],
+            49302928 * 1024,
+        )
         self.assertEqual(decoded["gpus"][0]["vendor_id"], "10de")
+        self.assertEqual(
+            decoded["gpus"][0]["free_vram_bytes"],
+            10501 * 1024 * 1024,
+        )
         self.assertEqual(
             decoded["gpus"][0]["detection_sources"],
             ["lspci", "nvidia-smi"],
@@ -69,6 +81,8 @@ class HardwareProfileTests(unittest.TestCase):
         data = profile.to_dict()
 
         self.assertIsNone(data["gpus"][0]["total_vram_bytes"])
+        self.assertIsNone(data["gpus"][0]["free_vram_bytes"])
+        self.assertIsNone(data["memory"]["available_bytes"])
         self.assertIsNone(data["cpu"]["model"])
 
 

@@ -108,6 +108,86 @@ class ModelProfileTests(unittest.TestCase):
                 active_parameter_count=8_000_000_000,
             )
 
+    def test_layerwise_attention_geometry_is_preserved(self):
+        profile = ModelProfile(
+            models=(
+                ModelIdentity(
+                    model_id="example/layerwise",
+                    block_count=4,
+                    attention_head_count=16,
+                    attention_head_count_kv=(4, 4, 2, 2),
+                    attention_key_length=128,
+                    attention_value_length=128,
+                ),
+            ),
+        )
+
+        model = json.loads(json.dumps(profile.to_dict()))["models"][0]
+
+        self.assertEqual(model["block_count"], 4)
+        self.assertEqual(
+            model["attention_head_count_kv"],
+            [4, 4, 2, 2],
+        )
+
+    def test_layerwise_geometry_must_match_block_count(self):
+        with self.assertRaises(ValueError):
+            ModelIdentity(
+                model_id="example/bad-layerwise",
+                block_count=3,
+                attention_head_count_kv=(4, 4),
+            )
+
+    def test_hybrid_memory_topology_is_preserved(self):
+        profile = ModelProfile(
+            models=(
+                ModelIdentity(
+                    model_id="example/hybrid",
+                    block_count=5,
+                    nextn_predict_layers=1,
+                    full_attention_interval=4,
+                    attention_recurrent_layers=(
+                        True,
+                        True,
+                        True,
+                        False,
+                        False,
+                    ),
+                    ssm_conv_kernel=4,
+                    ssm_group_count=16,
+                    ssm_inner_size=6144,
+                    ssm_state_size=128,
+                    ssm_time_step_rank=48,
+                ),
+            ),
+        )
+
+        model = profile.to_dict()["models"][0]
+
+        self.assertEqual(model["nextn_predict_layers"], 1)
+        self.assertEqual(model["full_attention_interval"], 4)
+        self.assertEqual(
+            model["attention_recurrent_layers"],
+            (True, True, True, False, False),
+        )
+        self.assertEqual(model["ssm_state_size"], 128)
+
+    def test_nextn_layers_cannot_exceed_block_count(self):
+        with self.assertRaises(ValueError):
+            ModelIdentity(
+                model_id="example/bad-mtp",
+                block_count=4,
+                nextn_predict_layers=5,
+            )
+
+    def test_recurrent_layer_map_must_match_block_count(self):
+        with self.assertRaises(ValueError):
+            ModelIdentity(
+                model_id="example/bad-recurrent-map",
+                block_count=4,
+                attention_recurrent_layers=(True, False),
+            )
+
     def test_invalid_artifact_location_is_rejected(self):
         with self.assertRaises(ValueError):
             ModelArtifact(

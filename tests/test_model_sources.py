@@ -82,6 +82,25 @@ class ModelSourceTests(unittest.TestCase):
                     "general.architecture": "example",
                     "general.parameter_count": 4_299_915_632,
                     "example.context_length": 131_072,
+                    "example.block_count": 3,
+                    "example.embedding_length": 4096,
+                    "example.attention.head_count": 32,
+                    "example.attention.head_count_kv": [8, 8, 4],
+                    "example.attention.key_length": 128,
+                    "example.attention.value_length": 128,
+                    "example.nextn_predict_layers": 1,
+                    "example.full_attention_interval": 4,
+                    "example.attention.recurrent_layers": [
+                        True,
+                        True,
+                        False,
+                    ],
+                    "example.attention.sliding_window": 4096,
+                    "example.ssm.conv_kernel": 4,
+                    "example.ssm.group_count": 8,
+                    "example.ssm.inner_size": 2048,
+                    "example.ssm.state_size": 128,
+                    "example.ssm.time_step_rank": 32,
                 },
                 "capabilities": ["completion", "tools"],
             },
@@ -96,6 +115,24 @@ class ModelSourceTests(unittest.TestCase):
         self.assertEqual(model.parameter_size_label, "4.3B")
         self.assertEqual(model.parameter_count, 4_299_915_632)
         self.assertEqual(model.context_length, 131_072)
+        self.assertEqual(model.block_count, 3)
+        self.assertEqual(model.embedding_length, 4096)
+        self.assertEqual(model.attention_head_count, 32)
+        self.assertEqual(model.attention_head_count_kv, (8, 8, 4))
+        self.assertEqual(model.attention_key_length, 128)
+        self.assertEqual(model.attention_value_length, 128)
+        self.assertEqual(model.nextn_predict_layers, 1)
+        self.assertEqual(model.full_attention_interval, 4)
+        self.assertEqual(
+            model.attention_recurrent_layers,
+            (True, True, False),
+        )
+        self.assertEqual(model.attention_sliding_window, 4096)
+        self.assertEqual(model.ssm_conv_kernel, 4)
+        self.assertEqual(model.ssm_group_count, 8)
+        self.assertEqual(model.ssm_inner_size, 2048)
+        self.assertEqual(model.ssm_state_size, 128)
+        self.assertEqual(model.ssm_time_step_rank, 32)
         self.assertEqual(
             model.capabilities,
             ("completion", "tools"),
@@ -134,6 +171,20 @@ class ModelSourceTests(unittest.TestCase):
                 "general.size_label": "27B",
                 "general.license": "Apache-2.0",
                 "example.context_length": 65_536,
+                "example.block_count": 48,
+                "example.embedding_length": 5120,
+                "example.attention.head_count": 40,
+                "example.attention.head_count_kv": 8,
+                "example.attention.key_length": 128,
+                "example.attention.value_length": 128,
+                "example.nextn_predict_layers": 1,
+                "example.full_attention_interval": 4,
+                "example.attention.sliding_window": 2048,
+                "example.ssm.conv_kernel": 4,
+                "example.ssm.group_count": 8,
+                "example.ssm.inner_size": 2048,
+                "example.ssm.state_size": 128,
+                "example.ssm.time_step_rank": 32,
                 "general.file_type": 7,
             },
             size_bytes=28_000_000_000,
@@ -147,6 +198,20 @@ class ModelSourceTests(unittest.TestCase):
         self.assertEqual(model.parameter_count, 27_123_456_789)
         self.assertEqual(model.parameter_size_label, "27B")
         self.assertEqual(model.context_length, 65_536)
+        self.assertEqual(model.block_count, 48)
+        self.assertEqual(model.embedding_length, 5120)
+        self.assertEqual(model.attention_head_count, 40)
+        self.assertEqual(model.attention_head_count_kv, 8)
+        self.assertEqual(model.attention_key_length, 128)
+        self.assertEqual(model.attention_value_length, 128)
+        self.assertEqual(model.nextn_predict_layers, 1)
+        self.assertEqual(model.full_attention_interval, 4)
+        self.assertEqual(model.attention_sliding_window, 2048)
+        self.assertEqual(model.ssm_conv_kernel, 4)
+        self.assertEqual(model.ssm_group_count, 8)
+        self.assertEqual(model.ssm_inner_size, 2048)
+        self.assertEqual(model.ssm_state_size, 128)
+        self.assertEqual(model.ssm_time_step_rank, 32)
         self.assertEqual(model.license, "Apache-2.0")
         self.assertEqual(artifact.format, "gguf")
         self.assertIsNone(artifact.quantization)

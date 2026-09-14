@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from liongateos_model_advisor.discovery import (
+    _discover_memory,
     _discover_pci_gpus,
     _enrich_nvidia,
 )
@@ -9,6 +10,28 @@ from liongateos_model_advisor.hardware_profile import GPU
 
 
 class DiscoveryTests(unittest.TestCase):
+    @patch("liongateos_model_advisor.discovery.Path.read_text")
+    def test_discovers_total_and_available_system_memory(self, read_text):
+        read_text.return_value = (
+            "MemTotal:       64892248 kB\n"
+            "MemFree:         1024000 kB\n"
+            "MemAvailable:   49302928 kB\n"
+        )
+
+        memory = _discover_memory()
+
+        self.assertEqual(memory.total_bytes, 64892248 * 1024)
+        self.assertEqual(memory.available_bytes, 49302928 * 1024)
+
+    @patch("liongateos_model_advisor.discovery.Path.read_text")
+    def test_missing_available_memory_remains_unknown(self, read_text):
+        read_text.return_value = "MemTotal: 64892248 kB\n"
+
+        memory = _discover_memory()
+
+        self.assertEqual(memory.total_bytes, 64892248 * 1024)
+        self.assertIsNone(memory.available_bytes)
+
     @patch("liongateos_model_advisor.discovery._run")
     def test_discovers_nvidia_and_amd_from_lspci(self, run):
         run.return_value = (
@@ -30,7 +53,7 @@ class DiscoveryTests(unittest.TestCase):
     def test_nvidia_enrichment_matches_by_pci_address(self, run):
         run.return_value = (
             "NVIDIA GeForce RTX 3090, "
-            "00000000:01:00.0, 24576, 580.173.02\n"
+            "00000000:01:00.0, 24576, 10501, 580.173.02\n"
         )
 
         source = [
@@ -48,6 +71,10 @@ class DiscoveryTests(unittest.TestCase):
 
         self.assertEqual(enriched[0].model, "NVIDIA GeForce RTX 3090")
         self.assertEqual(enriched[0].total_vram_bytes, 24576 * 1024 * 1024)
+        self.assertEqual(
+            enriched[0].free_vram_bytes,
+            10501 * 1024 * 1024,
+        )
         self.assertEqual(
             enriched[0].detection_sources,
             ("lspci", "nvidia-smi"),
@@ -84,4 +111,5 @@ class DiscoveryFallbackTests(unittest.TestCase):
 
         self.assertEqual(enriched, source)
         self.assertIsNone(enriched[0].total_vram_bytes)
+        self.assertIsNone(enriched[0].free_vram_bytes)
         self.assertEqual(enriched[0].detection_sources, ("lspci",))

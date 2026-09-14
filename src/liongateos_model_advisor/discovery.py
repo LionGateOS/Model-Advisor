@@ -79,15 +79,31 @@ def _discover_memory() -> Memory:
     except OSError:
         return Memory()
 
+    values: dict[str, int] = {}
+
     for line in lines:
-        if line.startswith("MemTotal:"):
-            parts = line.split()
-            if len(parts) >= 2:
-                try:
-                    return Memory(total_bytes=int(parts[1]) * 1024)
-                except ValueError:
-                    break
-    return Memory()
+        if ":" not in line:
+            continue
+
+        key, rest = line.split(":", 1)
+
+        if key not in {"MemTotal", "MemAvailable"}:
+            continue
+
+        parts = rest.split()
+
+        if not parts:
+            continue
+
+        try:
+            values[key] = int(parts[0]) * 1024
+        except ValueError:
+            continue
+
+    return Memory(
+        total_bytes=values.get("MemTotal"),
+        available_bytes=values.get("MemAvailable"),
+    )
 
 
 def _discover_pci_gpus() -> list[GPU]:
@@ -137,7 +153,7 @@ def _enrich_nvidia(gpus: list[GPU]) -> list[GPU]:
     output = _run(
         [
             "nvidia-smi",
-            "--query-gpu=name,pci.bus_id,memory.total,driver_version",
+            "--query-gpu=name,pci.bus_id,memory.total,memory.free,driver_version",
             "--format=csv,noheader,nounits",
         ]
     )
@@ -148,10 +164,10 @@ def _enrich_nvidia(gpus: list[GPU]) -> list[GPU]:
 
     for line in output.splitlines():
         parts = [part.strip() for part in line.split(",")]
-        if len(parts) != 4:
+        if len(parts) != 5:
             continue
 
-        name, pci, memory_mib, driver = parts
+        name, pci, memory_mib, free_memory_mib, driver = parts
         pci = _normalize_pci_address(pci)
 
         for index, gpu in enumerate(enriched):
@@ -162,6 +178,11 @@ def _enrich_nvidia(gpus: list[GPU]) -> list[GPU]:
             except ValueError:
                 total_vram = None
 
+            try:
+                free_vram = int(free_memory_mib) * 1024 * 1024
+            except ValueError:
+                free_vram = None
+
             enriched[index] = GPU(
                 vendor=gpu.vendor or "NVIDIA",
                 model=name or gpu.model,
@@ -169,6 +190,7 @@ def _enrich_nvidia(gpus: list[GPU]) -> list[GPU]:
                 vendor_id=gpu.vendor_id,
                 device_id=gpu.device_id,
                 total_vram_bytes=total_vram,
+                free_vram_bytes=free_vram,
                 driver_version=driver or None,
                 detection_sources=tuple(
                     dict.fromkeys((*gpu.detection_sources, "nvidia-smi"))
