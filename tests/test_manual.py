@@ -32,7 +32,9 @@ class ManualEntryTests(unittest.TestCase):
 
         self.assertEqual(data["cpu"]["physical_cores"], 8)
         self.assertEqual(data["memory"]["total_bytes"], 64 * 1024**3)
+        self.assertIsNone(data["memory"]["available_bytes"])
         self.assertEqual(data["gpus"][0]["total_vram_bytes"], 24 * 1024**3)
+        self.assertIsNone(data["gpus"][0]["free_vram_bytes"])
         self.assertEqual(data["gpus"][0]["detection_sources"], ("manual",))
 
     @patch("builtins.input")
@@ -46,6 +48,7 @@ class ManualEntryTests(unittest.TestCase):
 
         self.assertIsNone(profile.cpu.model)
         self.assertIsNone(profile.memory.total_bytes)
+        self.assertIsNone(profile.memory.available_bytes)
         self.assertEqual(profile.gpus, ())
 
 

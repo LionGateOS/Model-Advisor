@@ -29,6 +29,7 @@ class CPU:
 @dataclass(frozen=True)
 class Memory:
     total_bytes: int | None = None
+    available_bytes: int | None = None
 
 
 @dataclass(frozen=True)
@@ -39,6 +40,7 @@ class GPU:
     vendor_id: str | None = None
     device_id: str | None = None
     total_vram_bytes: int | None = None
+    free_vram_bytes: int | None = None
     driver_version: str | None = None
     detection_sources: tuple[str, ...] = ()
 
