@@ -138,6 +138,14 @@ Missing or failed capability probes do **not** automatically mean incompatible. 
 
 This compatibility layer evaluates detected hardware against runtime capability evidence. It does **not** yet determine whether a particular model will fit, perform well, or be recommended for the machine.
 
+The qualification layer is currently available to the project code, but is not
+yet a CLI command. When given complete evidence, it reports `qualified` for a
+single-GPU fit, `candidate` when multi-GPU execution is the only supported
+path, and `not_qualified` when incompatibility or the absence of any usable GPU
+path is proven. If required runtime or fit evidence is missing, it reports
+`unknown` with the available reasons and evidence sources; it does not treat
+missing evidence as failure.
+
 ## Open the Local Dashboard
 
 Model Advisor includes a local read-only dashboard that presents the same verified hardware, runtime discovery, and compatibility information in a browser:
