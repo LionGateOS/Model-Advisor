@@ -10,6 +10,7 @@ from .discovery import discover_hardware
 from .model_discovery import discover_ollama_models
 from .catalog_discovery import discover_huggingface_models
 from .openrouter_discovery import discover_openrouter_models
+from .qualification import qualification_capabilities
 from .runtime_discovery import discover_runtimes
 
 
@@ -43,4 +44,5 @@ def collect_dashboard_data(
         "models": models.to_dict(),
         "huggingface_models": huggingface_models.to_dict(),
         "openrouter_models": openrouter_models.to_dict(),
+        "qualification_capabilities": qualification_capabilities(),
     }

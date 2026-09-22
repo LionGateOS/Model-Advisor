@@ -22,6 +22,26 @@ ExecutionPath = Literal[
 ]
 
 
+def qualification_capabilities() -> dict[str, Any]:
+    """Return the JSON-serializable contract exposed by qualification."""
+
+    return {
+        "statuses": [
+            "qualified",
+            "candidate",
+            "not_qualified",
+            "unknown",
+        ],
+        "execution_paths": [
+            "single_gpu",
+            "multi_gpu",
+            "none",
+            "unknown",
+        ],
+        "conservative_unknown": True,
+    }
+
+
 @dataclass(frozen=True)
 class ModelQualification:
     model_id: str

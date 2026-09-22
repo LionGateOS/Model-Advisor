@@ -138,13 +138,31 @@ Missing or failed capability probes do **not** automatically mean incompatible. 
 
 This compatibility layer evaluates detected hardware against runtime capability evidence. It does **not** yet determine whether a particular model will fit, perform well, or be recommended for the machine.
 
-The qualification layer is currently available to the project code, but is not
-yet a CLI command. When given complete evidence, it reports `qualified` for a
+## Qualification Capability Contract
+
+Model Advisor exposes the implemented qualification capability contract as
+JSON. It describes the statuses and execution paths supported by the
+qualification layer:
+
+- statuses: `qualified`, `candidate`, `not_qualified`, and `unknown`;
+- execution paths: `single_gpu`, `multi_gpu`, `none`, and `unknown`;
+- `conservative_unknown: true`, meaning missing evidence remains unknown.
+
+When given complete evidence, qualification reports `qualified` for a
 single-GPU fit, `candidate` when multi-GPU execution is the only supported
 path, and `not_qualified` when incompatibility or the absence of any usable GPU
 path is proven. If required runtime or fit evidence is missing, it reports
 `unknown` with the available reasons and evidence sources; it does not treat
 missing evidence as failure.
+
+### Qualification CLI
+
+Show the capability contract from the repository root:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor qualification
+
+This command reports the contract only. It does not perform live per-model
+recommendation or performance prediction.
 
 ## Open the Local Dashboard
 
@@ -164,7 +182,12 @@ For a custom llama.cpp installation:
 
 The dashboard shows compatibility conclusions alongside their reasons and evidence. The same conservative evidence rules apply as in the command-line compatibility output: missing evidence remains unknown rather than being treated as incompatibility.
 
-The dashboard presents implemented hardware, runtime, compatibility, and Ollama model-metadata capabilities. It clearly distinguishes locally stored artifacts from remote-backed registrations and exposes metadata provenance. Model-fit recommendations, quantization guidance, benchmark results, confidence scoring, and concurrency estimates are not yet implemented.
+The dashboard presents implemented hardware, runtime, compatibility, and Ollama model-metadata capabilities. It clearly distinguishes locally stored artifacts from remote-backed registrations and exposes metadata provenance. Its JSON data payload includes a `qualification_capabilities` object containing the same qualification contract exposed by the CLI: supported statuses, supported execution paths, and `conservative_unknown: true`.
+
+Qualification describes an evidence-based capability contract; it is not a
+complete recommendation engine. Live per-model recommendations, performance
+prediction, quantization guidance, benchmark results, confidence scoring, and
+concurrency estimates are not yet implemented.
 
 ## Contributing
 

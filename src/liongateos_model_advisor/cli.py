@@ -14,6 +14,7 @@ from .manual import enter_hardware_manually
 from .model_discovery import discover_ollama_models
 from .catalog_discovery import discover_huggingface_models
 from .openrouter_discovery import discover_openrouter_models
+from .qualification import qualification_capabilities
 from .runtime_discovery import discover_runtimes
 
 
@@ -31,12 +32,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             "compatibility",
             "models",
             "dashboard",
+            "qualification",
         ),
         default="hardware",
         help=(
             "inspect hardware (default), installed AI runtimes, "
             "hardware/runtime compatibility, local model metadata, "
-            "or launch the local dashboard"
+            "launch the local dashboard, or show qualification capabilities"
         ),
     )
     parser.add_argument(
@@ -62,6 +64,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
 
     args = parser.parse_args(argv)
+
+    if args.command == "qualification":
+        print(json.dumps(qualification_capabilities(), indent=2))
+        return 0
 
     if args.command == "dashboard":
         if args.manual:
