@@ -174,16 +174,16 @@ implementation details from related projects in this public repository.
 
 ## Preservation and next action
 
-Local continuity and M08 hardening commits now exist beyond the recorded
-origin branch. No push has yet been performed. External disaster-recovery
-backup remains unverified.
+At the latest verified post-push checkpoint, local HEAD and
+`origin/m08-recommendation-layer` both resolved to `8b97be9`, and the working
+tree was clean. Verify live Git state before relying on this checkpoint.
+External disaster-recovery backup remains unverified.
 
-Do not claim a push, backup, or recovery state without verifying it.
+Do not claim a backup or recovery state without verifying it.
 
 Next action:
 
-1. Review and commit this continuity-state normalization.
-2. Verify the resulting live HEAD, working tree, and relationship to origin.
-3. Obtain explicit owner approval before pushing the accumulated local commits.
-4. After preservation is complete, continue M08 recommendation-layer work from
-   the roadmap rather than rediscovering M01-M07.
+1. Record and commit this post-push continuity update.
+2. Verify the resulting HEAD and working tree.
+3. Continue M08 recommendation-layer development from the roadmap without
+   rediscovering M01-M07.
