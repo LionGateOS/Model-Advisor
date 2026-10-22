@@ -89,6 +89,44 @@ discovery; those paths should not be returned as dashboard data.
 Status: implemented, verified by the recorded test run, and committed in
 `abc31d0`.
 
+## Current important capabilities and artifacts
+
+Important current capability surfaces include:
+
+- hardware discovery and manual hardware entry;
+- runtime discovery for Ollama, llama.cpp, and vLLM;
+- conservative runtime compatibility assessment;
+- provenance-aware model metadata and Ollama inventory discovery;
+- memory/fit foundations;
+- qualification capability surfaces;
+- local read-only dashboard;
+- CLI and JSON interfaces;
+- regression tests under `tests/`.
+
+Important current public records include:
+
+- `docs/PROJECT_STATE.md`;
+- `docs/ROADMAP.md`;
+- `docs/ACCOMPLISHMENTS.md`;
+- `README.md`.
+
+Do not treat this as a complete artifact inventory. Verify paths and ownership
+before relying on or changing an artifact.
+
+## Pending decisions, failures and unresolved work
+
+- Full recommendation logic remains unfinished.
+- Benchmark execution/comparison remains unfinished.
+- Arbitrary GGUF filesystem scanning is not part of Model Advisor.
+- The owner-requested “NVIDIA Neatron Bolt 74B” evaluation remains
+  PLANNED / UNVERIFIED.
+- No current known regression is recorded at this checkpoint.
+- External disaster-recovery backup remains unverified.
+
+Record important new failures, regressions, owner decisions, rejected
+approaches, and completed investigations here or in the appropriate durable
+historical record instead of relying on chat memory.
+
 ## Stable capabilities and limitations
 
 The public README is the current summary of product capabilities. Important

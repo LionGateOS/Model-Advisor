@@ -107,3 +107,22 @@ For each meaningful checkpoint, record:
 
 Keep current status in `PROJECT_STATE.md`, milestone status in `ROADMAP.md`,
 and historical accomplishments here.
+
+## Recording read-only discoveries and decisions
+
+Significant investigation results belong in this history even when no code
+changes.
+
+Record durable findings such as:
+
+- important architectural discoveries;
+- previously unknown or disconnected capabilities;
+- existing integrations and interfaces;
+- failure causes and regressions;
+- safety or ownership constraints;
+- important owner decisions and their reasons;
+- rejected alternatives;
+- completed investigations that should not be repeated.
+
+When an older conclusion is superseded, preserve it as HISTORICAL and record
+what replaced it rather than deleting the earlier accomplishment.
