@@ -81,6 +81,17 @@ No backup, commit or push was performed for this checkpoint. Do not assume
 that an external backup exists. Existing working-tree changes must be
 preserved until their review and commit decision.
 
+## 2026-10-22 — M08 hardening and durable continuity committed
+
+- Commit `abc31d0` — `Harden M08 compatibility and add durable continuity`.
+- The commit contains the reviewed eight-file M08 hardening and continuity set.
+- Final pre-commit verification: 121 tests passed in 2.532 seconds.
+- `git diff --cached --check` passed.
+- The no-pager code/test review and public-safety review were completed.
+- Immediately after the commit, `git status --short` was clean.
+- No push had been performed at this checkpoint.
+- External disaster-recovery backup remains unverified.
+
 ## Recording future accomplishments
 
 For each meaningful checkpoint, record:

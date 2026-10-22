@@ -34,16 +34,13 @@ when current status changes.
 ## Last verified repository checkpoint
 
 - Branch: `m08-recommendation-layer`
-- HEAD: `3f9171f` — `Add qualification capability surfaces`
-- The branch and `origin/m08-recommendation-layer` pointed to the same commit.
-- Four pre-existing modified files were present:
-  - `src/liongateos_model_advisor/cli.py`
-  - `src/liongateos_model_advisor/qualification.py`
-  - `tests/test_cli.py`
-  - `tests/test_dashboard.py`
-- No staged changes were present at that checkpoint.
+- HEAD: `abc31d0` — `Harden M08 compatibility and add durable continuity`
+- Local HEAD is `abc31d0`; `origin/m08-recommendation-layer` remains at `3f9171f` because the new commit has not been pushed.
+- The reviewed eight-file M08 hardening and continuity change set was committed
+  as `abc31d0`.
+- Immediately after the commit, `git status --short` was clean.
 - The dashboard implementation file had no outstanding change.
-- Do not reset, stash, discard, or overwrite existing work.
+- No push had been performed at that checkpoint.
 
 Recheck `git status` and `git log` before using this as a current checkpoint.
 The subsequent continuation reread all durable records, verified the live branch and HEAD, and completed a no-pager review of the code/test patch.
@@ -64,9 +61,19 @@ tests passed in 2.533 seconds**.
 - The working tree contained the existing code/test changes, README links, and
   three new continuity records. Nothing was staged, committed or pushed.
 
+Final pre-commit verification on 2026-10-22:
+
+- **121 tests passed in 2.532 seconds**.
+- `git diff --cached --check` — passed.
+- Exactly eight reviewed files were staged.
+- Commit `abc31d0` — `Harden M08 compatibility and add durable continuity` —
+  was created successfully.
+- Immediately afterward, the working tree was clean.
+- No push had been performed.
+
 ## Current implementation work
 
-The existing, uncommitted changes cover:
+The M08 hardening changes committed in `abc31d0` cover:
 
 - `cli.py`: a `--passive` option for compatibility assessment, plus graceful
   handling of `BrokenPipeError` when printing JSON.
@@ -79,8 +86,8 @@ The existing, uncommitted changes cover:
 The dashboard must continue using configured runtime paths internally for
 discovery; those paths should not be returned as dashboard data.
 
-Status: implemented in the working tree and covered by the last full test run;
-not yet committed at the recorded checkpoint.
+Status: implemented, verified by the recorded test run, and committed in
+`abc31d0`.
 
 ## Stable capabilities and limitations
 
@@ -129,9 +136,8 @@ Do not claim a backup exists without verifying it.
 
 Next action:
 
-1. Rerun the full test suite and `git diff --check` after this documentation
-   reconciliation.
-2. Confirm the final staged eight-file set.
-3. Obtain explicit owner approval before committing or pushing.
-4. After commit, record the resulting commit and verification state in the
-   durable project records.
+1. Commit this post-commit continuity update after reviewing the exact diff.
+2. Verify the resulting HEAD and working tree.
+3. Obtain explicit owner approval before pushing either local commit.
+4. After preservation is complete, continue M08 recommendation-layer work from
+   the roadmap rather than rediscovering M01-M07.
