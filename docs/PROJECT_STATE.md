@@ -34,8 +34,13 @@ when current status changes.
 ## Last verified repository checkpoint
 
 - Branch: `m08-recommendation-layer`
-- HEAD: `abc31d0` — `Harden M08 compatibility and add durable continuity`
-- Local HEAD is `abc31d0`; `origin/m08-recommendation-layer` remains at `3f9171f` because the new commit has not been pushed.
+- Last recorded M08 implementation checkpoint: `abc31d0` —
+  `Harden M08 compatibility and add durable continuity`.
+- Later continuity-only commits may exist beyond that checkpoint. Always verify
+  the live HEAD with Git instead of treating an embedded documentation commit
+  ID as permanently current.
+- `origin/m08-recommendation-layer` was still at `3f9171f` at the latest
+  verified pre-push check.
 - The reviewed eight-file M08 hardening and continuity change set was committed
   as `abc31d0`.
 - Immediately after the commit, `git status --short` was clean.
@@ -169,13 +174,16 @@ implementation details from related projects in this public repository.
 
 ## Preservation and next action
 
-No backup, commit or push was performed as part of the recorded checkpoint.
-Do not claim a backup exists without verifying it.
+Local continuity and M08 hardening commits now exist beyond the recorded
+origin branch. No push has yet been performed. External disaster-recovery
+backup remains unverified.
+
+Do not claim a push, backup, or recovery state without verifying it.
 
 Next action:
 
-1. Commit this post-commit continuity update after reviewing the exact diff.
-2. Verify the resulting HEAD and working tree.
-3. Obtain explicit owner approval before pushing either local commit.
+1. Review and commit this continuity-state normalization.
+2. Verify the resulting live HEAD, working tree, and relationship to origin.
+3. Obtain explicit owner approval before pushing the accumulated local commits.
 4. After preservation is complete, continue M08 recommendation-layer work from
    the roadmap rather than rediscovering M01-M07.
