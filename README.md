@@ -12,6 +12,8 @@ The goal is to reduce wasted time downloading, configuring, and testing models t
 
 ## Project Status
 
+Development continuity: [current project state](docs/PROJECT_STATE.md), [roadmap](docs/ROADMAP.md), and [accomplishment history](docs/ACCOMPLISHMENTS.md).
+
 Model Advisor is in early public development.
 
 The first implemented capability is a normalized hardware profile.

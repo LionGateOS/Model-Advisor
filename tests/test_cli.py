@@ -153,6 +153,91 @@ class CLITests(unittest.TestCase):
         )
         self.assertNotIn("/private/example", output.getvalue())
 
+    @patch("liongateos_model_advisor.cli.assess_compatibility")
+    @patch(
+        "liongateos_model_advisor.cli.collect_runtime_capability_evidence"
+    )
+    @patch("liongateos_model_advisor.cli.discover_runtimes")
+    @patch("liongateos_model_advisor.cli.discover_hardware")
+    def test_compatibility_passive_skips_capability_probes(
+        self,
+        discover_hardware,
+        discover_runtimes,
+        collect_evidence,
+        assess,
+    ):
+        hardware = HardwareProfile(
+            cpu=CPU(model="Example CPU")
+        )
+        runtimes = RuntimeProfile(
+            runtimes=(
+                Runtime(name="llama.cpp", available=True),
+            )
+        )
+        compatibility = RuntimeProfile()
+
+        discover_hardware.return_value = hardware
+        discover_runtimes.return_value = runtimes
+        assess.return_value = compatibility
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(
+                [
+                    "compatibility",
+                    "--passive",
+                    "--runtime-path",
+                    "/private/example/llama.cpp/bin",
+                ]
+            )
+
+        self.assertEqual(result, 0)
+        discover_hardware.assert_called_once_with()
+        discover_runtimes.assert_called_once_with(
+            ["/private/example/llama.cpp/bin"]
+        )
+        collect_evidence.assert_not_called()
+        assess.assert_called_once_with(
+            hardware,
+            runtimes,
+            (),
+        )
+        self.assertNotIn("/private/example", output.getvalue())
+
+    @patch("liongateos_model_advisor.cli.assess_compatibility")
+    @patch(
+        "liongateos_model_advisor.cli.collect_runtime_capability_evidence"
+    )
+    @patch("liongateos_model_advisor.cli.discover_runtimes")
+    @patch("liongateos_model_advisor.cli.discover_hardware")
+    def test_compatibility_default_runs_capability_probes(
+        self,
+        discover_hardware,
+        discover_runtimes,
+        collect_evidence,
+        assess,
+    ):
+        hardware = HardwareProfile(
+            cpu=CPU(model="Example CPU")
+        )
+        runtimes = RuntimeProfile()
+        compatibility = RuntimeProfile()
+
+        discover_hardware.return_value = hardware
+        discover_runtimes.return_value = runtimes
+        collect_evidence.return_value = ()
+        assess.return_value = compatibility
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(["compatibility"])
+
+        self.assertEqual(result, 0)
+        discover_hardware.assert_called_once_with()
+        discover_runtimes.assert_called_once_with([])
+        collect_evidence.assert_called_once_with(runtimes, [])
+        assess.assert_called_once_with(hardware, runtimes, ())
+
 
     @patch("liongateos_model_advisor.cli.discover_ollama_models")
     def test_models_command_outputs_local_model_profile(self, discover):

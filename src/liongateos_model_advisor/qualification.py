@@ -97,7 +97,7 @@ def qualify_gpu_model(
         status=status,
         execution_path=path,
         reasons=tuple(dict.fromkeys(reasons)),
-        evidence_sources=runtime.evidence_sources,
+        evidence_sources=tuple(dict.fromkeys(runtime.evidence_sources)),
     )
 
 

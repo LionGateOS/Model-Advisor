@@ -63,6 +63,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         default="local",
     )
 
+    parser.add_argument(
+        "--passive",
+        action="store_true",
+        help=(
+            "with compatibility, assess without running runtime capability "
+            "probes; available runtimes without proven gpu evidence stay "
+            "unknown"
+        ),
+    )
+
     args = parser.parse_args(argv)
 
     if args.command == "qualification":
@@ -117,10 +127,13 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         hardware = discover_hardware()
         runtimes = discover_runtimes(args.runtime_path)
-        evidence = collect_runtime_capability_evidence(
-            runtimes,
-            args.runtime_path,
-        )
+        if args.passive:
+            evidence: tuple = ()
+        else:
+            evidence = collect_runtime_capability_evidence(
+                runtimes,
+                args.runtime_path,
+            )
         profile = assess_compatibility(
             hardware,
             runtimes,
@@ -143,5 +156,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         except ValueError as exc:
             parser.error(str(exc))
 
-    print(json.dumps(profile.to_dict(), indent=2))
+    try:
+        print(json.dumps(profile.to_dict(), indent=2))
+    except BrokenPipeError:
+        return 0
+
     return 0
