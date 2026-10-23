@@ -97,6 +97,7 @@ class DashboardDataTests(unittest.TestCase):
         data = collect_dashboard_data(
             ["/private/example/llama.cpp/bin"]
         )
+        self.assertNotIn("runtime_paths", data)
 
         self.assertEqual(
             data["hardware"]["cpu"]["model"],
