@@ -94,3 +94,36 @@ class QualificationIntegrationTests(unittest.TestCase):
         self.assertEqual(result.execution_path, "single_gpu")
         self.assertIn("runtime-proof", result.evidence_sources)
         self.assertIn("hardware-profile", result.evidence_sources)
+
+
+    def test_partial_memory_fit_remains_unknown_in_qualification(self):
+        from liongateos_model_advisor.hardware_profile import GPU, HardwareProfile
+        from liongateos_model_advisor.memory_estimate import ModelMemoryEstimate
+        from liongateos_model_advisor.qualification import qualify_gpu_model_from_evidence
+
+        estimate = ModelMemoryEstimate(
+            model_id="model:test",
+            artifact_id="artifact:test",
+            context_length=8192,
+            known_minimum_bytes=9000,
+        )
+        hardware = HardwareProfile(
+            gpus=(GPU(total_vram_bytes=12000, free_vram_bytes=11000),)
+        )
+        runtime = RuntimeCompatibility(
+            runtime_name="llama.cpp",
+            status="compatible",
+            evidence_sources=("runtime-proof",),
+        )
+
+        result = qualify_gpu_model_from_evidence(
+            estimate=estimate,
+            hardware=hardware,
+            runtime=runtime,
+            capability=None,
+        )
+
+        self.assertEqual(result.status, "unknown")
+        self.assertEqual(result.execution_path, "unknown")
+        self.assertIn("runtime-proof", result.evidence_sources)
+        self.assertIn("hardware-profile", result.evidence_sources)
