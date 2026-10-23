@@ -28,16 +28,30 @@ by itself prove every real-hardware scenario is covered.
 
 ## Current M08 work
 
-Existing uncommitted changes at the last verified checkpoint:
+The earlier M08 hardening and durable-continuity work was reviewed, verified,
+committed, and pushed. The implementation checkpoint is `abc31d0` —
+`Harden M08 compatibility and add durable continuity`.
 
-- CLI passive compatibility mode and graceful broken-pipe handling.
-- Deduplicated qualification evidence sources.
-- CLI regression tests for passive and default behavior.
-- Dashboard regression test ensuring `runtime_paths` is not returned.
+Verified hardening included:
 
-The full suite was rerun after the continuity records and README links were
-added on 2026-10-22: 121 tests passed in 2.533 seconds; `git diff --check`
-passed. The eight-file change set remains uncommitted and has now been reviewed and staged for final verification. Preserve it.
+- CLI passive compatibility mode and graceful broken-pipe handling;
+- deduplicated qualification evidence sources;
+- CLI regression tests for passive and default capability probing;
+- dashboard regression protection ensuring `runtime_paths` is not returned.
+
+The last full code/test verification before documentation-only continuity
+commits passed all 121 tests in 2.532 seconds.
+
+Current M08 investigation is focused on reusing existing model metadata,
+catalog discovery, fit, execution-fit, and qualification foundations before
+adding recommendation ranking logic.
+
+Hugging Face catalog discovery already supports bounded public search,
+bounded detail enrichment, task/parameter filtering, deduplication, explicit
+partial/unavailable states, and conservative GGUF metadata handling. Repo-level
+GGUF totals are not promoted to exact model parameter counts or concrete
+artifact sizes without stronger evidence.
+
 A separate owner-requested candidate-model evaluation is recorded in
 `PROJECT_STATE.md`; its model identity and video claims remain unverified.
 
@@ -72,6 +86,7 @@ without an explicit product decision.
 
 ## Next safe action
 
-The complete patch and staged diff have now been reviewed. Rerun the full
-test suite and `git diff --check`, confirm the final staged eight-file set, and
-obtain explicit approval before committing or pushing.
+Inspect the remaining model-discovery and normalization paths against current
+official Ollama and Hugging Face metadata. Identify the smallest missing
+evidence fields needed for conservative recommendation logic before changing
+the recommendation schema or adding ranking heuristics.
