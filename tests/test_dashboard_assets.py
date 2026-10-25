@@ -99,7 +99,19 @@ class DashboardAssetTests(unittest.TestCase):
         self.assertIn('id="ecosystem-list"', body)
         self.assertIn('id="ecosystem-summary"', body)
 
-    def test_theme_exposes_semantic_liongateos_tokens(self):
+    def test_model_suitability_statuses_have_distinct_styles(self):
+        _, script = self.read("/dashboard.js")
+        _, css = self.read("/dashboard.css")
+
+        for status in ("qualified", "candidate", "not_qualified", "unknown"):
+            self.assertIn(status, script)
+
+        self.assertIn('status === "not_qualified" ? "incompatible" : status', script)
+        self.assertIn(".status-qualified", css)
+        self.assertIn(".status-candidate", css)
+        self.assertIn("var(--lg-success)", css)
+        self.assertIn("var(--lg-warning)", css)
+
         response, body = self.read("/theme.css")
 
         self.assertEqual(response.status, 200)

@@ -374,6 +374,14 @@ footer {
   color: var(--lg-success);
 }
 
+.status-qualified {
+  color: var(--lg-success);
+}
+
+.status-candidate {
+  color: var(--lg-warning);
+}
+
 .status-incompatible {
   color: var(--lg-danger);
 }
@@ -509,4 +517,29 @@ footer p {
 
 [role="tabpanel"][hidden] {
   display: none !important;
+}
+
+
+.model-suitability {
+  margin: 0.9rem 0;
+  padding: 0.8rem;
+  border: 1px solid var(--lg-border);
+  border-radius: 0.65rem;
+  background: var(--lg-surface);
+}
+
+.suitability-heading {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.suitability-reasons {
+  margin: 0.6rem 0 0;
+  padding-left: 1.25rem;
+  color: var(--lg-text-muted);
+  font-size: 0.9rem;
+}
+
+.suitability-reasons li + li {
+  margin-top: 0.35rem;
 }

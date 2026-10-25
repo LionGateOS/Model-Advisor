@@ -11,7 +11,8 @@ from .discovery import discover_hardware
 from .model_discovery import discover_ollama_models
 from .catalog_discovery import discover_huggingface_models
 from .openrouter_discovery import discover_openrouter_models
-from .qualification import qualification_capabilities
+from .qualification import qualification_capabilities, qualify_gpu_model_from_evidence
+from .memory_calculation import estimate_model_memory
 from .runtime_discovery import discover_runtimes
 
 
@@ -39,6 +40,16 @@ def collect_dashboard_data(
     openrouter_models = discover_openrouter_models()
 
     context_comparisons = []
+    suitability_summaries = []
+    runtime_by_name = {
+        item.runtime_name.lower(): item
+        for item in compatibility.runtimes
+    }
+    capability_by_name = {
+        item.runtime_name.lower(): item
+        for item in evidence
+        if hasattr(item, "runtime_name")
+    }
     models_by_id = {model.model_id: model for model in models.models}
     for artifact in models.artifacts:
         # Only a concrete locally stored artifact is eligible.  In
@@ -50,6 +61,50 @@ def collect_dashboard_data(
         model = models_by_id.get(artifact.model_id)
         if model is None:
             continue
+
+        estimate = estimate_model_memory(
+            model,
+            artifact,
+            context_length=4096,
+            key_bytes_per_element=2.0,
+            value_bytes_per_element=2.0,
+        )
+
+        runtime = runtime_by_name.get("ollama")
+        if runtime is not None:
+            qualification = qualify_gpu_model_from_evidence(
+                estimate=estimate,
+                hardware=hardware,
+                runtime=runtime,
+                capability=capability_by_name.get("ollama"),
+            )
+            status = qualification.status
+            reasons = list(qualification.reasons)
+            evidence_sources = list(qualification.evidence_sources)
+
+            # A qualified result requires a complete memory estimate.
+            # Missing memory evidence must never be hidden by a positive
+            # partial-fit assessment.
+            if status == "qualified" and estimate.estimated_total_bytes is None:
+                status = "unknown"
+                reasons.append("complete-model-memory-unknown")
+        else:
+            status = "unknown"
+            reasons = ["ollama-runtime-compatibility-unknown"]
+            evidence_sources = []
+
+        if estimate.estimated_total_bytes is None:
+            reasons.append("complete-model-memory-unknown")
+
+        suitability_summaries.append(
+            {
+                "model_id": model.model_id,
+                "artifact_id": artifact.artifact_id,
+                "status": status,
+                "reasons": list(dict.fromkeys(reasons)),
+                "evidence_sources": evidence_sources,
+            }
+        )
 
         context_comparisons.append(
             {
@@ -76,5 +131,6 @@ def collect_dashboard_data(
         "huggingface_models": huggingface_models.to_dict(),
         "openrouter_models": openrouter_models.to_dict(),
         "context_comparisons": context_comparisons,
+        "suitability_summaries": suitability_summaries,
         "qualification_capabilities": qualification_capabilities(),
     }

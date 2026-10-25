@@ -314,7 +314,7 @@ function evidenceRecords(model, artifact) {
   return details;
 }
 
-function renderModels(profile) {
+function renderModels(profile, suitabilitySummaries = []) {
   modelNode.replaceChildren();
 
   const models = Array.isArray(profile.models)
@@ -339,6 +339,11 @@ function renderModels(profile) {
         ? profile.artifacts
         : []
     ).map((artifact) => [artifact.model_id, artifact]),
+  );
+
+  const suitabilityByModel = new Map(
+    (Array.isArray(suitabilitySummaries) ? suitabilitySummaries : [])
+      .map((item) => [item.model_id, item]),
   );
 
   const locationOrder = {
@@ -446,6 +451,54 @@ function renderModels(profile) {
     );
 
     card.append(topline);
+
+    if (location === "local") {
+      const suitability = suitabilityByModel.get(model.model_id);
+      const status = suitability?.status || "unknown";
+      const labels = {
+        qualified: "Qualified — evidence supports this path",
+        candidate: "Candidate — not yet confirmed",
+        not_qualified: "Not qualified under current evidence",
+        unknown: "Unknown — more evidence needed",
+      };
+      const reasons = Array.isArray(suitability?.reasons)
+        ? suitability.reasons
+        : [];
+
+      const panel = element("div", "model-suitability");
+      panel.append(
+        element("h4", "suitability-heading", "Model suitability"),
+        element(
+          "p",
+          `status-badge status-${status === "not_qualified" ? "incompatible" : status}`,
+          labels[status] || labels.unknown,
+        ),
+      );
+
+      if (reasons.length > 0) {
+        const explanation = element("ul", "suitability-reasons");
+        reasons.forEach((reason) => {
+          const explanations = {
+            "complete-model-memory-unknown":
+              "Total memory needs are not fully known, so a fit cannot be confirmed.",
+            "artifact-size-is-storage-not-resident-weight-proof":
+              "File size does not prove how much memory the loaded model will use.",
+            "runtime-overhead-unknown":
+              "Additional memory used by the runtime is unknown.",
+            "recurrent-state-memory-unknown":
+              "Additional recurrent-state memory needs are unknown.",
+            "multi-gpu-fit-not-proven":
+              "Using multiple GPUs may be possible, but a successful fit has not been proven.",
+          };
+          explanation.append(
+            element("li", "", explanations[reason] || reason.replaceAll("-", " ")),
+          );
+        });
+        panel.append(explanation);
+      }
+
+      card.append(panel);
+    }
 
     const meta = element("div", "model-meta");
 
@@ -728,7 +781,10 @@ async function refreshDashboard(force = false) {
       data.runtimes || {},
       data.compatibility || {},
     );
-    renderModels(data.models || {});
+    renderModels(
+      data.models || {},
+      data.suitability_summaries || [],
+    );
     renderContextComparisons(
       data.context_comparisons || [],
       data.models || {},
