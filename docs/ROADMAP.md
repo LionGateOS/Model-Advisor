@@ -107,4 +107,9 @@ recommendation engine or universal model/hardware compatibility.
 
 ## M08 context comparison — implementation checkpoint
 
-**IMPLEMENTED, NOT YET VERIFIED:** Compare explicitly requested context lengths, show supported KV estimates, and preserve conservative GPU memory statuses. Full quantization guidance and recommendation ranking remain PLANNED.
+**IMPLEMENTED / PARTIALLY VERIFIED:** The read-only dashboard compares local
+Ollama artifacts at 4096, 8192, 16384 and 32768 tokens, preserves unknown
+memory evidence, separates context-limit status from memory fit, and shows
+independent GPU assessments. The complete 131-test Python suite and JavaScript syntax checks pass
+outside the restricted sandbox; browser visual review remains pending. Full quantization
+guidance and recommendation ranking remain PLANNED.

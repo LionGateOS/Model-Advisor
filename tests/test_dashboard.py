@@ -123,6 +123,16 @@ class DashboardDataTests(unittest.TestCase):
             data["models"]["sources"][0]["status"],
             "available",
         )
+        self.assertEqual(
+            [item["context_length"] for item in data["context_comparisons"][0]["options"]],
+            [4096, 8192, 16384, 32768],
+        )
+        self.assertTrue(
+            all(
+                item["total_memory_status"] == "unknown"
+                for item in data["context_comparisons"][0]["options"]
+            )
+        )
 
         discover_hardware.assert_called_once_with()
         discover_runtimes.assert_called_once_with(
@@ -141,6 +151,102 @@ class DashboardDataTests(unittest.TestCase):
         discover_huggingface.assert_called_once_with()
         discover_openrouter.assert_called_once_with()
 
+    @patch("liongateos_model_advisor.dashboard.discover_openrouter_models")
+    @patch("liongateos_model_advisor.dashboard.discover_huggingface_models")
+    @patch("liongateos_model_advisor.dashboard.discover_ollama_models")
+    @patch("liongateos_model_advisor.dashboard.assess_compatibility")
+    @patch("liongateos_model_advisor.dashboard.collect_runtime_capability_evidence")
+    @patch("liongateos_model_advisor.dashboard.discover_runtimes")
+    @patch("liongateos_model_advisor.dashboard.discover_hardware")
+    def test_context_comparison_excludes_remote_artifacts_and_preserves_unknowns(
+        self,
+        discover_hardware,
+        discover_runtimes,
+        collect_evidence,
+        assess,
+        discover_models,
+        discover_huggingface,
+        discover_openrouter,
+    ):
+        hardware = HardwareProfile()
+        runtimes = RuntimeProfile()
+        compatibility = CompatibilityProfile(
+            hardware_schema_version="1",
+            runtime_schema_version="1",
+        )
+        local = ModelIdentity(
+            model_id="ollama:local",
+            context_length=None,
+        )
+        remote = ModelIdentity(
+            model_id="ollama:remote",
+            context_length=32768,
+        )
+
+        discover_hardware.return_value = hardware
+        discover_runtimes.return_value = runtimes
+        collect_evidence.return_value = ()
+        assess.return_value = compatibility
+        discover_models.return_value = ModelProfile(
+            models=(local, remote),
+            artifacts=(
+                ModelArtifact(
+                    artifact_id="local-artifact",
+                    model_id=local.model_id,
+                    location="local",
+                ),
+                ModelArtifact(
+                    artifact_id="remote-artifact",
+                    model_id=remote.model_id,
+                    location="remote",
+                ),
+            ),
+        )
+        discover_huggingface.return_value = ModelProfile()
+        discover_openrouter.return_value = ModelProfile()
+
+        data = collect_dashboard_data()
+
+        self.assertEqual(
+            [item["model_id"] for item in data["context_comparisons"]],
+            ["ollama:local"],
+        )
+        self.assertTrue(
+            all(
+                option["context_status"] == "unknown"
+                for option in data["context_comparisons"][0]["options"]
+            )
+        )
+        self.assertTrue(
+            all(
+                option["kv_cache_bytes"] is None
+                for option in data["context_comparisons"][0]["options"]
+            )
+        )
+
+
+
+class DashboardFP16ScenarioTests(unittest.TestCase):
+    def test_dashboard_explicitly_supplies_fp16_sizes(self):
+        from pathlib import Path
+
+        source = Path(
+            "src/liongateos_model_advisor/dashboard.py"
+        ).read_text()
+
+        self.assertIn("key_bytes_per_element=2.0", source)
+        self.assertIn("value_bytes_per_element=2.0", source)
+
+    def test_dashboard_labels_assumption(self):
+        from pathlib import Path
+
+        script = Path(
+            "src/liongateos_model_advisor/web/dashboard.js"
+        ).read_text()
+
+        self.assertIn("assumed FP16", script)
+        self.assertIn("not a detected runtime setting", script)
+        self.assertIn("KV cache (FP16 scenario)", script)
 
 if __name__ == "__main__":
     unittest.main()

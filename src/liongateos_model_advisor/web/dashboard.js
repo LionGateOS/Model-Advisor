@@ -7,6 +7,7 @@ const gpuNode = document.querySelector("#gpu-list");
 const runtimeNode = document.querySelector("#runtime-list");
 const modelNode = document.querySelector("#model-list");
 const modelSummaryNode = document.querySelector("#model-summary");
+const contextNode = document.querySelector("#context-comparison");
 const ecosystemNode = document.querySelector("#ecosystem-list");
 const ecosystemSummaryNode = document.querySelector("#ecosystem-summary");
 
@@ -45,6 +46,10 @@ function formatInteger(value) {
   }
 
   return new Intl.NumberFormat("en-US").format(value);
+}
+
+function formatStatus(value) {
+  return known(value, "unknown").replaceAll("_", " ");
 }
 
 function formatSizeLabel(value, parameterCount) {
@@ -143,8 +148,22 @@ function renderGPUs(hardware) {
     );
 
     const meta = element("div", "device-meta");
-    addMeta(meta, "VRAM", formatBytes(gpu.total_vram_bytes));
-    addMeta(meta, "Driver", gpu.driver_version);
+    const integratedAMD = gpu.vendor === "AMD"
+      && gpu.model === "Raphael";
+    addMeta(
+      meta,
+      "VRAM",
+      gpu.total_vram_bytes == null
+        ? (integratedAMD
+          ? "Dedicated VRAM not reported; integrated graphics uses shared memory"
+          : "Not reported by hardware discovery")
+        : formatBytes(gpu.total_vram_bytes),
+    );
+    addMeta(
+      meta,
+      "Driver",
+      gpu.driver_version || "Driver version not reported",
+    );
     addMeta(
       meta,
       "Evidence",
@@ -222,9 +241,13 @@ function renderRuntimes(runtimesProfile, compatibilityProfile) {
 
     const meta = element("div", "runtime-meta");
     addMeta(meta, "Available", runtime.available ? "Yes" : "No");
-    addMeta(meta, "Version", runtime.version);
-    addMeta(meta, "Build", runtime.build);
-    addMeta(meta, "Commit", runtime.commit);
+    addMeta(
+      meta,
+      "Version",
+      runtime.version || (runtime.available
+        ? "Not reported by runtime"
+        : "Runtime not detected through configured discovery paths"),
+    );
     card.append(meta);
 
     const details = element("details", "evidence");
@@ -483,6 +506,121 @@ function renderModels(profile) {
   });
 }
 
+function renderContextComparisons(comparisons, modelsProfile) {
+  contextNode.replaceChildren();
+
+  const entries = Array.isArray(comparisons) ? comparisons : [];
+  const models = new Map(
+    (Array.isArray(modelsProfile.models) ? modelsProfile.models : [])
+      .map((model) => [model.model_id, model]),
+  );
+
+  if (entries.length === 0) {
+    contextNode.append(
+      element(
+        "div",
+        "empty-state",
+        "No locally stored Ollama model has enough evidence for comparison.",
+      ),
+    );
+    return;
+  }
+
+  const label = element("label", "context-selector-label", "Model");
+  const selector = document.createElement("select");
+  selector.id = "context-model-selector";
+  selector.className = "context-selector";
+  selector.setAttribute("aria-describedby", "context-help");
+
+  const table = element("div", "context-table-wrap");
+  const help = element(
+    "p",
+    "section-note context-help",
+    "KV-cache values use an assumed FP16 key/value cache (2 bytes per element), not a detected runtime setting. Estimates require supported attention metadata. Total-memory fit remains unassessed; GPUs are evaluated independently.",
+  );
+  help.id = "context-help";
+
+  const renderSelected = () => {
+    table.replaceChildren();
+    const selected = entries[Number(selector.value)];
+    const model = selected ? models.get(selected.model_id) : null;
+    const title = known(model?.display_name, selected?.model_id);
+    table.append(element("h3", "context-model-name", title));
+
+    const rows = element("tbody");
+    (selected?.options || []).forEach((option) => {
+      const row = element("tr");
+      const gpuCell = element("td", "context-value");
+      const assessments = Array.isArray(option.gpu_assessments)
+        ? option.gpu_assessments
+        : [];
+      if (assessments.length === 0) {
+        gpuCell.append(element("div", "", "Unknown"));
+      } else {
+        assessments.forEach((assessment) => {
+          gpuCell.append(
+            element(
+              "div",
+              "",
+              `${known(assessment.target_id)}: ${formatStatus(assessment.capacity_status)}`,
+            ),
+          );
+        });
+      }
+      row.append(
+        element("th", "context-value", formatInteger(option.context_length)),
+        element("td", "context-value", formatStatus(option.context_status)),
+        element(
+          "td", "context-value",
+          option.kv_cache_bytes == null
+            ? "Not estimated" : formatBytes(option.kv_cache_bytes),
+        ),
+        element(
+          "td", "context-value",
+          option.total_memory_status == null
+            ? "Not assessed" : formatStatus(option.total_memory_status),
+        ),
+        gpuCell,
+      );
+      row.firstElementChild.scope = "row";
+      rows.append(row);
+    });
+
+    const tableElement = document.createElement("table");
+    tableElement.className = "context-table";
+    tableElement.append(
+      element("caption", "visually-hidden", "Context comparison"),
+    );
+    const head = element("thead");
+    const headerRow = element("tr");
+    [
+      "Tokens",
+      "Context limit",
+      "KV cache (FP16 scenario)",
+      "Total memory fit",
+      "Independent GPU assessments",
+    ].forEach(
+      (heading) => headerRow.append(element("th", "", heading)),
+    );
+    head.append(headerRow);
+    tableElement.append(head, rows);
+    table.append(tableElement);
+  };
+
+  entries.forEach((entry, index) => {
+    const model = models.get(entry.model_id);
+    const option = element("option");
+    option.value = String(index);
+    option.textContent = known(model?.display_name, entry.model_id);
+    selector.append(option);
+  });
+
+  selector.addEventListener("change", renderSelected);
+  label.htmlFor = selector.id;
+  contextNode.append(label, selector, help, table);
+  renderSelected();
+}
+
 function renderEcosystem(huggingfaceProfile, openrouterProfile) {
   ecosystemNode.replaceChildren();
 
@@ -502,9 +640,11 @@ function renderEcosystem(huggingfaceProfile, openrouterProfile) {
       element("div", "model-provider", "Hugging Face"),
     );
     const meta = element("div", "model-meta");
-    addMeta(meta, "Parameters", formatInteger(model.parameter_count));
-    addMeta(meta, "Context", formatInteger(model.context_length));
-    addMeta(meta, "Architecture", model.architecture);
+    addMeta(meta, "Parameters", model.parameter_count == null
+      ? "Not reported by source" : formatInteger(model.parameter_count));
+    addMeta(meta, "Context", model.context_length == null
+      ? "Not reported by source" : formatInteger(model.context_length));
+    addMeta(meta, "Architecture", model.architecture || "Not reported by source");
     card.append(meta);
     ecosystemNode.append(card);
   });
@@ -516,20 +656,63 @@ function renderEcosystem(huggingfaceProfile, openrouterProfile) {
       element("div", "model-provider", "OpenRouter"),
     );
     const meta = element("div", "model-meta");
-    addMeta(meta, "Context", formatInteger(offering.context_length));
-    addMeta(meta, "Linked model", offering.model_id);
+    addMeta(meta, "Context", offering.context_length == null
+      ? "Not reported by source" : formatInteger(offering.context_length));
+    addMeta(meta, "Linked model", offering.model_id || "No verified model link");
     card.append(meta);
     ecosystemNode.append(card);
   });
 }
 
-async function refreshDashboard() {
+
+const dashboardTabs = Array.from(
+  document.querySelectorAll(".dashboard-tab")
+);
+
+function activateDashboardTab(tab, focus = false) {
+  dashboardTabs.forEach((item) => {
+    const selected = item === tab;
+    item.setAttribute("aria-selected", String(selected));
+    item.tabIndex = selected ? 0 : -1;
+    const panel = document.getElementById(
+      item.getAttribute("aria-controls")
+    );
+    if (panel) {
+      panel.hidden = !selected;
+    }
+  });
+  if (focus) {
+    tab.focus();
+  }
+}
+
+dashboardTabs.forEach((tab, index) => {
+  tab.addEventListener("click", () => activateDashboardTab(tab));
+  tab.addEventListener("keydown", (event) => {
+    let next = index;
+    if (event.key === "ArrowRight") {
+      next = (index + 1) % dashboardTabs.length;
+    } else if (event.key === "ArrowLeft") {
+      next = (index - 1 + dashboardTabs.length) % dashboardTabs.length;
+    } else if (event.key === "Home") {
+      next = 0;
+    } else if (event.key === "End") {
+      next = dashboardTabs.length - 1;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    activateDashboardTab(dashboardTabs[next], true);
+  });
+});
+
+async function refreshDashboard(force = false) {
   refreshButton.disabled = true;
   statusNode.classList.remove("error");
   statusNode.textContent = "Inspecting machine and model evidence…";
 
   try {
-    const response = await fetch("/api/dashboard", {
+    const response = await fetch(force ? "/api/dashboard?refresh=1" : "/api/dashboard", {
       cache: "no-store",
     });
 
@@ -546,6 +729,10 @@ async function refreshDashboard() {
       data.compatibility || {},
     );
     renderModels(data.models || {});
+    renderContextComparisons(
+      data.context_comparisons || [],
+      data.models || {},
+    );
     renderEcosystem(
       data.huggingface_models || {},
       data.openrouter_models || {},
@@ -563,5 +750,5 @@ async function refreshDashboard() {
   }
 }
 
-refreshButton.addEventListener("click", refreshDashboard);
+refreshButton.addEventListener("click", () => refreshDashboard(true));
 refreshDashboard();

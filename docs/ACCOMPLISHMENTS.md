@@ -152,9 +152,18 @@ what replaced it rather than deleting the earlier accomplishment.
   unassessed, not failed.
 - No production changes, GPU workloads or model downloads.
 
-## 2026-10-25 — M08 context guidance implementation candidate
+## 2026-10-25 — M08 dashboard context comparison implementation
 
-- Added context comparison logic and focused regression tests.
-- Reused existing evidence-bounded memory estimation and independent GPU assessments.
-- No new model execution, automatic installation or dispatch authority.
-- Pending test and code review; not yet a completed milestone.
+- Added local Ollama context comparisons to the existing dashboard payload and
+  UI at 4096, 8192, 16384 and 32768 tokens.
+- Added an accessible model selector and DOM-built comparison table.
+- Reused existing evidence-bounded memory estimation and independent GPU
+  assessments; remote-backed and hosted-only models are excluded.
+- KV precision is not inferred from quantization or storage size, and unknown
+  KV, total-memory and fit results remain unknown.
+- Added regression coverage for incomplete metadata, remote exclusion, context
+  limits, independent GPUs and existing dashboard behavior.
+- Verification: the complete 131-test Python suite passed in the owner's
+  normal terminal, JavaScript syntax passed, and Git diff checks passed.
+  Status: **AUTOMATED TESTS VERIFIED**; browser visual review remains
+  pending. No complete-fit or recommendation claim.

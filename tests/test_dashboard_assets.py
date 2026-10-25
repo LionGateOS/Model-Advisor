@@ -8,6 +8,50 @@ from liongateos_model_advisor.dashboard_server import (
 
 
 class DashboardAssetTests(unittest.TestCase):
+
+    def test_missing_evidence_has_explanations(self):
+        from importlib.resources import files
+
+        script = files("liongateos_model_advisor").joinpath(
+            "web", "dashboard.js"
+        ).read_text()
+
+        for expected in (
+            "Dedicated VRAM not reported",
+            "Driver version not reported",
+            "Runtime not detected through configured discovery paths",
+            "Not estimated",
+            "Not assessed",
+            "Not reported by source",
+            "No verified model link",
+        ):
+            self.assertIn(expected, script)
+
+        self.assertNotIn('addMeta(meta, "Build", runtime.build)', script)
+        self.assertNotIn('addMeta(meta, "Commit", runtime.commit)', script)
+
+
+
+    def test_dashboard_has_accessible_section_tabs(self):
+        from importlib.resources import files
+        html = files("liongateos_model_advisor").joinpath(
+            "web", "index.html"
+        ).read_text()
+        script = files("liongateos_model_advisor").joinpath(
+            "web", "dashboard.js"
+        ).read_text()
+        for name in (
+            "overview", "hardware", "runtimes",
+            "models", "context", "ecosystem"
+        ):
+            self.assertIn(f'id="tab-{name}"', html)
+            self.assertIn(f'id="panel-{name}"', html)
+        self.assertIn('role="tablist"', html)
+        self.assertIn('role="tabpanel"', html)
+        self.assertIn("function activateDashboardTab", script)
+        self.assertIn('event.key === "ArrowRight"', script)
+
+
     def setUp(self):
         self.server = create_dashboard_server(port=0)
         self.thread = threading.Thread(
@@ -51,6 +95,7 @@ class DashboardAssetTests(unittest.TestCase):
         self.assertIn('id="runtime-list"', body)
         self.assertIn('id="model-list"', body)
         self.assertIn('id="model-summary"', body)
+        self.assertIn('id="context-comparison"', body)
         self.assertIn('id="ecosystem-list"', body)
         self.assertIn('id="ecosystem-summary"', body)
 
@@ -78,7 +123,7 @@ class DashboardAssetTests(unittest.TestCase):
         response, body = self.read("/dashboard.js")
 
         self.assertEqual(response.status, 200)
-        self.assertIn('fetch("/api/dashboard"', body)
+        self.assertIn('fetch(force ? "/api/dashboard?refresh=1" : "/api/dashboard"', body)
         self.assertIn("Why / Evidence", body)
         self.assertIn("renderModels", body)
         self.assertIn("renderEcosystem", body)
@@ -88,6 +133,9 @@ class DashboardAssetTests(unittest.TestCase):
         self.assertIn("Not locally stored", body)
         self.assertIn("Same as exact count", body)
         self.assertIn("formatSizeLabel", body)
+        self.assertIn("context-model-selector", body)
+        self.assertIn("Context limit", body)
+        self.assertIn("Total memory fit", body)
         self.assertIn("artifact.location", body)
         self.assertIn("inventory partial", body)
         self.assertIn("Ollama metadata source unavailable", body)

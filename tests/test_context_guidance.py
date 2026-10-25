@@ -62,6 +62,24 @@ class ContextGuidanceTests(unittest.TestCase):
         self.assertEqual(options[0].context_status, "within_reported_limit")
         self.assertEqual(options[1].context_status, "exceeds_reported_limit")
 
+    def test_gpu_assessments_remain_independent(self):
+        options = compare_context_options(
+            self.model, self.artifact, self.hardware,
+            context_lengths=(4096,),
+            key_bytes_per_element=2,
+            value_bytes_per_element=2,
+        )
+        assessments = options[0].gpu_assessments
+        self.assertEqual(len(assessments), 2)
+        self.assertEqual(
+            [assessment["target_id"] for assessment in assessments],
+            ["gpu:0", "gpu:1"],
+        )
+        self.assertEqual(
+            [assessment["capacity_bytes"] for assessment in assessments],
+            [1_000_000, 2_000_000],
+        )
+
     def test_missing_kv_precision_remains_unknown(self):
         option = compare_context_options(
             self.model, self.artifact, self.hardware,

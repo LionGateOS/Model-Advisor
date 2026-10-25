@@ -202,9 +202,21 @@ Next action:
 - Next: map additional reference vectors without weakening conservative
   unknown/unsupported behavior.
 
-## M08 context guidance implementation — pending verification
+## 2026-10-25 — M08 dashboard context comparison checkpoint
 
-- Added bounded context comparisons using existing memory and GPU-fit calculations.
-- Model weight and runtime overhead remain unknown; no complete-fit claim.
-- Local tests and review are required before marking this VERIFIED.
-- Latest published checkpoint before this work: `be9e35c`, 124 tests passed; eight external reference cases covered, 41 unassessed.
+- Status: **IMPLEMENTED / AUTOMATED TESTS VERIFIED**; browser visual review pending.
+- Added `context_comparisons` to the existing read-only dashboard payload for
+  locally stored Ollama artifacts only.
+- The dashboard compares 4096, 8192, 16384 and 32768 tokens using the existing
+  memory calculator and independent GPU assessment functions.
+- Remote-backed artifacts and hosted-only offerings are excluded.
+- KV precision is never inferred from weight quantization or artifact size.
+  Unknown KV cache, total memory and fit status remain unknown when evidence is
+  incomplete. Context-limit compatibility remains separate from memory fit.
+- Targeted non-socket regression run: **124 tests passed**. JavaScript syntax
+  check passed.
+- Required full run reached 131 tests: 125 passed and 6 existing HTTP tests
+  errored because this sandbox denied loopback socket creation with
+  `PermissionError: [Errno 1] Operation not permitted`. No assertion failure
+  was reported. A subsequent full run in the owner's normal terminal
+  passed all 131 tests; browser visual verification remains pending.
