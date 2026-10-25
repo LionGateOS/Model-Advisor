@@ -201,3 +201,10 @@ Next action:
 - No GPU or model execution was required.
 - Next: map additional reference vectors without weakening conservative
   unknown/unsupported behavior.
+
+## M08 context guidance implementation — pending verification
+
+- Added bounded context comparisons using existing memory and GPU-fit calculations.
+- Model weight and runtime overhead remain unknown; no complete-fit claim.
+- Local tests and review are required before marking this VERIFIED.
+- Latest published checkpoint before this work: `be9e35c`, 124 tests passed; eight external reference cases covered, 41 unassessed.

@@ -151,3 +151,10 @@ what replaced it rather than deleting the earlier accomplishment.
 - Three are covered by the existing test; the other 46 remain
   unassessed, not failed.
 - No production changes, GPU workloads or model downloads.
+
+## 2026-10-25 — M08 context guidance implementation candidate
+
+- Added context comparison logic and focused regression tests.
+- Reused existing evidence-bounded memory estimation and independent GPU assessments.
+- No new model execution, automatic installation or dispatch authority.
+- Pending test and code review; not yet a completed milestone.
