@@ -29,7 +29,7 @@ they can be treated as Model Advisor conformance tests.
 | `v-gptoss120b-rtxpro6000-q4-32k` | `verdict` | UNASSESSED — requires individual mapping |
 | `v-llama31-3060-8gb-q4-8k` | `verdict` | UNASSESSED — requires individual mapping |
 | `v-e2b-ple-fp16-3060-8gb-headless` | `verdict` | UNASSESSED — requires individual mapping |
-| `hy3-kv-full-f16` | `kv_total_bytes` | UNASSESSED — requires individual mapping |
+| `hy3-kv-full-f16` | `kv_total_bytes` | VERIFIED — byte-exact calculator regression |
 | `qwen38-27b-kv-full-f16` | `kv_total_bytes` | VERIFIED — existing KV regression |
 | `qwen38-27b-linear-state` | `linear_state_bytes` | UNASSESSED — requires individual mapping |
 | `qwen38-2.4t-kv-full-f16` | `kv_total_bytes` | UNASSESSED — requires individual mapping |
@@ -43,10 +43,10 @@ they can be treated as Model Advisor conformance tests.
 | `v-laguna-xs-mac64-q4-131k` | `verdict` | UNASSESSED — requires individual mapping |
 | `v-qwen38-2.4t-mac512-q4-8k` | `verdict` | UNASSESSED — requires individual mapping |
 | `spark-x25-4b-kv-1m-f16` | `kv_total_bytes` | UNASSESSED — requires individual mapping |
-| `granite42-30b-kv-128k-f16` | `kv_total_bytes` | UNASSESSED — requires individual mapping |
-| `minicpm5-2b-kv-128k-f16` | `kv_total_bytes` | UNASSESSED — requires individual mapping |
-| `nex-n25-mini-kv-128k-f16` | `kv_total_bytes` | UNASSESSED — requires individual mapping |
-| `nex-n25-pro-kv-128k-f16` | `kv_total_bytes` | UNASSESSED — requires individual mapping |
+| `granite42-30b-kv-128k-f16` | `kv_total_bytes` | VERIFIED — byte-exact calculator regression |
+| `minicpm5-2b-kv-128k-f16` | `kv_total_bytes` | VERIFIED — byte-exact calculator regression |
+| `nex-n25-mini-kv-128k-f16` | `kv_total_bytes` | VERIFIED — byte-exact calculator regression |
+| `nex-n25-pro-kv-128k-f16` | `kv_total_bytes` | VERIFIED — byte-exact calculator regression |
 | `v-gptoss120b-dgxspark128-q4-8k` | `verdict` | UNASSESSED — requires individual mapping |
 | `v-gptoss120b-dgxspark128-q6k-32k` | `verdict` | UNASSESSED — requires individual mapping |
 | `v-lagunas-dgxspark128-q6k-256k` | `verdict` | UNASSESSED — requires individual mapping |
@@ -80,3 +80,17 @@ they can be treated as Model Advisor conformance tests.
 Independently map supported reference cases to the existing model
 schema, add narrowly justified tests, and document unsupported
 cases with explicit reasons.
+
+## Additional M08 calculator regression checkpoint
+
+Five additional external reference cases are now covered by
+byte-exact regression tests: Hy3, Granite 4.2 30B, MiniCPM5 2B,
+Nex-N2.5-mini, and Nex-N2.5-Pro.
+
+Coverage is now eight reference calculations; 41 reference cases
+remain unassessed. Architecture inputs were transcribed from the
+external reference notes, not independently verified against upstream
+model configuration files.
+
+These tests do not establish hardware fit, runtime support, recurrent
+state accounting, or measured performance.

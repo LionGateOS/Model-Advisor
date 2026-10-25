@@ -40,5 +40,36 @@ class ExternalKVConformanceTests(unittest.TestCase):
                 self.assertEqual(reasons, ())
 
 
+    def test_reference_full_and_hybrid_attention_kv(self):
+        # Architecture inputs are taken from FitLLM reference notes.
+        # These tests do not independently verify upstream configs.
+        cases = (
+            ("hy3-kv-full-f16", 80, 8, 128, 262144, 85899345920),
+            ("granite42-30b-kv-128k-f16", 64, 8, 128, 131072, 34359738368),
+            ("minicpm5-2b-kv-128k-f16", 42, 2, 128, 131072, 5637144576),
+            ("nex-n25-mini-kv-128k-f16", 40, 2, 256, 131072, 2684354560),
+            ("nex-n25-pro-kv-128k-f16", 60, 2, 256, 131072, 4026531840),
+        )
+        for identifier, layers, heads, dimension, context, expected in cases:
+            with self.subTest(vector=identifier):
+                hybrid = identifier.startswith("nex-")
+                model = ModelIdentity(
+                    model_id=identifier,
+                    block_count=layers,
+                    attention_head_count_kv=heads,
+                    attention_key_length=dimension,
+                    attention_value_length=dimension,
+                    full_attention_interval=4 if hybrid else 1,
+                )
+                actual, reasons = calculate_kv_cache_bytes(
+                    model,
+                    context_length=context,
+                    key_bytes_per_element=2.0,
+                    value_bytes_per_element=2.0,
+                )
+                self.assertEqual(actual, expected)
+                self.assertEqual(reasons, ())
+
+
 if __name__ == "__main__":
     unittest.main()
