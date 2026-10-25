@@ -232,3 +232,15 @@ Next action:
 - Live Ollama endpoint was reachable with zero loaded models.
 - Active-model measurements remain unverified; no model was started.
 - M08 recommendation ranking remains unfinished.
+
+## M08 Conservative Recommendation V1 — 2026-10-25
+
+- IMPLEMENTED: A pure, read-only local-artifact recommendation classifier.
+- Workloads initially supported: coding, general chat, and reasoning.
+- Reuses existing ModelIdentity, ModelArtifact, and ModelQualification contracts.
+- Explicit reported task/capability evidence is required for workload matching.
+- Unknown hardware suitability is never promoted to qualified.
+- Remote artifacts and mismatched identities are rejected.
+- No performance scoring, downloads, model execution, or WorkRunner authority.
+- LIMITATION: Classification is not yet connected to the dashboard or CLI.
+- LIMITATION: Workload taxonomy is intentionally narrow and requires future review.
