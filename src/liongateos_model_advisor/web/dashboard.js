@@ -314,7 +314,12 @@ function evidenceRecords(model, artifact) {
   return details;
 }
 
-function renderModels(profile, suitabilitySummaries = [], memoryObservations = {}) {
+function renderModels(
+  profile,
+  suitabilitySummaries = [],
+  memoryObservations = {},
+  workloadRecommendations = [],
+) {
   modelNode.replaceChildren();
 
   const models = Array.isArray(profile.models)
@@ -345,6 +350,16 @@ function renderModels(profile, suitabilitySummaries = [], memoryObservations = {
     (Array.isArray(suitabilitySummaries) ? suitabilitySummaries : [])
       .map((item) => [item.model_id, item]),
   );
+
+
+  const recommendationsByModel = new Map();
+  (Array.isArray(workloadRecommendations) ? workloadRecommendations : [])
+    .forEach((item) => {
+      if (!recommendationsByModel.has(item.model_id)) {
+        recommendationsByModel.set(item.model_id, []);
+      }
+      recommendationsByModel.get(item.model_id).push(item);
+    });
 
   const observedByModel = new Map(
     (Array.isArray(memoryObservations.models) ? memoryObservations.models : [])
@@ -484,6 +499,47 @@ function renderModels(profile, suitabilitySummaries = [], memoryObservations = {
       }
 
       card.append(observationPanel);
+
+
+      const recommendations = recommendationsByModel.get(model.model_id) || [];
+      if (recommendations.length > 0) {
+        const recommendationPanel = element("div", "model-suitability");
+        recommendationPanel.append(
+          element("h4", "suitability-heading", "Workload recommendations"),
+        );
+
+        const workloadNames = {
+          coding: "Coding",
+          general_chat: "General chat",
+          reasoning: "Reasoning",
+        };
+        const recommendationLabels = {
+          supported_candidate: "Supported candidate",
+          needs_hardware_verification: "Hardware verification needed",
+          workload_unknown: "Workload suitability unknown",
+          not_recommended: "Not recommended under current evidence",
+        };
+
+        recommendations.forEach((item) => {
+          const row = element("div", "model-meta");
+          addMeta(
+            row,
+            workloadNames[item.workload] || item.workload,
+            recommendationLabels[item.status] || "Unknown",
+          );
+          recommendationPanel.append(row);
+
+          if (Array.isArray(item.reasons) && item.reasons.length) {
+            const explanation = element(
+              "p",
+              "",
+              item.reasons.join("; "),
+            );
+            recommendationPanel.append(explanation);
+          }
+        });
+        card.append(recommendationPanel);
+      }
 
       const suitability = suitabilityByModel.get(model.model_id);
       const status = suitability?.status || "unknown";
@@ -817,6 +873,7 @@ async function refreshDashboard(force = false) {
       data.models || {},
       data.suitability_summaries || [],
       data.memory_observations || {},
+      data.workload_recommendations || [],
     );
     renderContextComparisons(
       data.context_comparisons || [],

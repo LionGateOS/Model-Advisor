@@ -125,3 +125,18 @@ guidance and recommendation ranking remain PLANNED.
 - No performance scoring, downloads, model execution, or WorkRunner authority.
 - LIMITATION: Classification is not yet connected to the dashboard or CLI.
 - LIMITATION: Workload taxonomy is intentionally narrow and requires future review.
+
+## M08 dashboard workload recommendations — 2026-10-25
+
+- IMPLEMENTED: Existing local-model dashboard cards now show coding,
+  general-chat and reasoning recommendation classifications.
+- Reuses Conservative Recommendation V1 and existing suitability evidence.
+- Preserves the complete-memory safeguard: unknown total memory cannot
+  produce a confirmed positive hardware qualification.
+- Remote-backed artifacts are excluded from local recommendations.
+- Missing reported workload metadata remains unknown.
+- No numerical performance ranking or benchmark claims are introduced.
+- No model execution, downloads, installation or WorkRunner authority.
+- Verification: full Python suite, JavaScript syntax and regression tests
+  must pass before this checkpoint is committed.
+- Browser visual inspection remains pending.

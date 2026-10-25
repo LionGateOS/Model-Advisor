@@ -13,6 +13,7 @@ from .ollama_memory_observation import observe_loaded_models
 from .catalog_discovery import discover_huggingface_models
 from .openrouter_discovery import discover_openrouter_models
 from .qualification import qualification_capabilities, qualify_gpu_model_from_evidence
+from .recommendation import recommend_local_model
 from .memory_calculation import estimate_model_memory
 from .runtime_discovery import discover_runtimes
 
@@ -52,6 +53,7 @@ def collect_dashboard_data(
 
     context_comparisons = []
     suitability_summaries = []
+    workload_recommendations = []
     runtime_by_name = {
         item.runtime_name.lower(): item
         for item in compatibility.runtimes
@@ -107,6 +109,32 @@ def collect_dashboard_data(
         if estimate.estimated_total_bytes is None:
             reasons.append("complete-model-memory-unknown")
 
+
+        from .qualification import ModelQualification
+
+        safe_qualification = ModelQualification(
+            model_id=model.model_id,
+            artifact_id=artifact.artifact_id,
+            runtime_name="ollama",
+            status=status,
+            execution_path=(
+                qualification.execution_path
+                if runtime is not None and status == qualification.status
+                else "unknown"
+            ),
+            reasons=tuple(dict.fromkeys(reasons)),
+            evidence_sources=tuple(evidence_sources),
+        )
+
+        for workload in ("coding", "general_chat", "reasoning"):
+            recommendation = recommend_local_model(
+                model=model,
+                artifact=artifact,
+                qualification=safe_qualification,
+                workload=workload,
+            )
+            workload_recommendations.append(recommendation.to_dict())
+
         suitability_summaries.append(
             {
                 "model_id": model.model_id,
@@ -144,5 +172,6 @@ def collect_dashboard_data(
         "openrouter_models": openrouter_models.to_dict(),
         "context_comparisons": context_comparisons,
         "suitability_summaries": suitability_summaries,
+        "workload_recommendations": workload_recommendations,
         "qualification_capabilities": qualification_capabilities(),
     }
