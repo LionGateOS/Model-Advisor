@@ -220,3 +220,15 @@ Next action:
   `PermissionError: [Errno 1] Operation not permitted`. No assertion failure
   was reported. A subsequent full run in the owner's normal terminal
   passed all 131 tests; browser visual verification remains pending.
+
+## M08 Ollama active-memory observation checkpoint — 2026-10-25
+
+- Read-only `/api/ps` observation added for already-loaded local Ollama models.
+- Reported loaded and GPU memory remain observations, not predicted requirements.
+- Remote-backed registrations are excluded from dashboard memory observations.
+- Missing observations do not establish a zero-memory requirement.
+- Existing suitability and qualification rules remain unchanged.
+- Malformed and unavailable API responses are handled conservatively.
+- Live Ollama endpoint was reachable with zero loaded models.
+- Active-model measurements remain unverified; no model was started.
+- M08 recommendation ranking remains unfinished.

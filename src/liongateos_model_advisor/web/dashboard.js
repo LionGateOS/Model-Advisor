@@ -314,7 +314,7 @@ function evidenceRecords(model, artifact) {
   return details;
 }
 
-function renderModels(profile, suitabilitySummaries = []) {
+function renderModels(profile, suitabilitySummaries = [], memoryObservations = {}) {
   modelNode.replaceChildren();
 
   const models = Array.isArray(profile.models)
@@ -343,6 +343,11 @@ function renderModels(profile, suitabilitySummaries = []) {
 
   const suitabilityByModel = new Map(
     (Array.isArray(suitabilitySummaries) ? suitabilitySummaries : [])
+      .map((item) => [item.model_id, item]),
+  );
+
+  const observedByModel = new Map(
+    (Array.isArray(memoryObservations.models) ? memoryObservations.models : [])
       .map((item) => [item.model_id, item]),
   );
 
@@ -453,6 +458,33 @@ function renderModels(profile, suitabilitySummaries = []) {
     card.append(topline);
 
     if (location === "local") {
+      const observation = observedByModel.get(model.model_id);
+      const observationPanel = element("div", "model-suitability");
+      observationPanel.append(
+        element("h4", "suitability-heading", "Active memory observation"),
+      );
+
+      if (observation) {
+        const observedMeta = element("div", "model-meta");
+        addMeta(
+          observedMeta,
+          "Loaded memory",
+          formatSizeLabel(observation.loaded_bytes),
+        );
+        addMeta(
+          observedMeta,
+          "GPU memory",
+          formatSizeLabel(observation.gpu_bytes),
+        );
+        observationPanel.append(observedMeta);
+      } else {
+        observationPanel.append(
+          element("p", "", "No active memory observation"),
+        );
+      }
+
+      card.append(observationPanel);
+
       const suitability = suitabilityByModel.get(model.model_id);
       const status = suitability?.status || "unknown";
       const labels = {
@@ -784,6 +816,7 @@ async function refreshDashboard(force = false) {
     renderModels(
       data.models || {},
       data.suitability_summaries || [],
+      data.memory_observations || {},
     );
     renderContextComparisons(
       data.context_comparisons || [],

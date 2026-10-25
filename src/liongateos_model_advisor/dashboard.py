@@ -9,6 +9,7 @@ from .compatibility import assess_compatibility
 from .context_guidance import compare_context_options
 from .discovery import discover_hardware
 from .model_discovery import discover_ollama_models
+from .ollama_memory_observation import observe_loaded_models
 from .catalog_discovery import discover_huggingface_models
 from .openrouter_discovery import discover_openrouter_models
 from .qualification import qualification_capabilities, qualify_gpu_model_from_evidence
@@ -36,6 +37,16 @@ def collect_dashboard_data(
         evidence,
     )
     models = discover_ollama_models()
+    memory_observations = observe_loaded_models()
+    local_ids = {
+        artifact.model_id
+        for artifact in models.artifacts
+        if artifact.location == "local"
+    }
+    memory_observations["models"] = [
+        item for item in memory_observations["models"]
+        if item["model_id"] in local_ids
+    ]
     huggingface_models = discover_huggingface_models()
     openrouter_models = discover_openrouter_models()
 
@@ -128,6 +139,7 @@ def collect_dashboard_data(
         "runtimes": runtimes.to_dict(),
         "compatibility": compatibility.to_dict(),
         "models": models.to_dict(),
+        "memory_observations": memory_observations,
         "huggingface_models": huggingface_models.to_dict(),
         "openrouter_models": openrouter_models.to_dict(),
         "context_comparisons": context_comparisons,

@@ -23,6 +23,7 @@ OLLAMA_TIMEOUT_SECONDS = 5
 _ALLOWED_OLLAMA_PATHS = {
     "/api/tags",
     "/api/show",
+    "/api/ps",
 }
 
 
