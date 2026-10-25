@@ -187,3 +187,17 @@ Next action:
 2. Verify the resulting HEAD and working tree.
 3. Continue M08 recommendation-layer development from the roadmap without
    rediscovering M01-M07.
+
+## 2026-10-25 — M08 external conformance checkpoint
+
+- Live verified branch: `m08-recommendation-layer`.
+- Published checkpoint: `0773e5d`.
+- Three external hybrid KV-cache reference cases pass.
+- Full suite: **123 tests passed**.
+- Working tree was clean at the start of the current job.
+- FitLLM reference inventory: 49 vectors; three verified,
+  46 not yet assessed for Model Advisor conformance.
+- Full recommendation ranking and benchmark execution remain unfinished.
+- No GPU or model execution was required.
+- Next: map additional reference vectors without weakening conservative
+  unknown/unsupported behavior.

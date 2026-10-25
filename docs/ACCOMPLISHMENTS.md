@@ -139,3 +139,15 @@ what replaced it rather than deleting the earlier accomplishment.
   passed all 121 tests in 2.532 seconds.
 - External/off-machine backup of the private owner continuity record remains
   unverified.
+
+## 2026-10-25 — M08 external KV conformance published
+
+- Commit `0773e5d` was pushed to
+  `origin/m08-recommendation-layer` and independently verified.
+- Added `tests/test_external_kv_conformance.py`.
+- Three reference calculations matched expected byte totals.
+- Full suite: **123 tests passed**.
+- REA competitor research identified 49 FitLLM reference vectors.
+- Three are covered by the existing test; the other 46 remain
+  unassessed, not failed.
+- No production changes, GPU workloads or model downloads.

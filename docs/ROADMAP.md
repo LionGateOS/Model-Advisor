@@ -90,3 +90,17 @@ Inspect the remaining model-discovery and normalization paths against current
 official Ollama and Hugging Face metadata. Identify the smallest missing
 evidence fields needed for conservative recommendation logic before changing
 the recommendation schema or adding ranking heuristics.
+
+## 2026-10-25 — M08 external evidence checkpoint
+
+**VERIFIED:** Three FitLLM-derived hybrid KV reference calculations
+match Model Advisor's existing calculator; 123 tests passed.
+
+**PARTIAL:** Remaining 46 external reference vectors have not yet been
+mapped to Model Advisor's supported architectures and contracts.
+
+**PLANNED:** Evidence-bounded quantization/context guidance, followed
+by measured benchmarking when separately approved.
+
+**LIMITATION:** This checkpoint does not establish a complete
+recommendation engine or universal model/hardware compatibility.
