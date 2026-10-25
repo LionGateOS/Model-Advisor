@@ -346,8 +346,38 @@ class CLITests(unittest.TestCase):
             output.getvalue(),
         )
         create_server.assert_called_once_with(
-            ["/private/example/llama.cpp/bin"]
+            ["/private/example/llama.cpp/bin"],
+            port=8765,
         )
+
+
+    @patch("liongateos_model_advisor.cli.create_dashboard_server")
+    def test_dashboard_custom_port_is_forwarded(self, create_server):
+        class FakeServer:
+            server_address = ("127.0.0.1", 8766)
+
+            def serve_forever(self):
+                return None
+
+            def server_close(self):
+                return None
+
+        create_server.return_value = FakeServer()
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(["dashboard", "--port", "8766"])
+
+        self.assertEqual(result, 0)
+        self.assertIn("http://127.0.0.1:8766/", output.getvalue())
+        create_server.assert_called_once_with([], port=8766)
+
+    def test_dashboard_rejects_invalid_port(self):
+        for port in ("0", "65536", "-1"):
+            with self.subTest(port=port):
+                with self.assertRaises(SystemExit):
+                    main(["dashboard", "--port", port])
+
 
 
 if __name__ == "__main__":

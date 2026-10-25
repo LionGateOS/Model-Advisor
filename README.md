@@ -176,6 +176,14 @@ Then open:
 
     http://127.0.0.1:8765/
 
+If port 8765 is already in use, choose another local port:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor dashboard --port 8766
+
+Then open:
+
+    http://127.0.0.1:8766/
+
 The dashboard binds to the local loopback interface by default. It does not provide shell access, model installation, downloads, job dispatch, approval controls, or arbitrary filesystem access.
 
 For a custom llama.cpp installation:

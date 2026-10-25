@@ -80,6 +80,91 @@ class RecommendationTests(unittest.TestCase):
         result = self.classify(evidence=False)
         self.assertEqual(result.status, "workload_unknown")
 
+    def test_unrelated_capability_evidence_does_not_verify_task(self):
+        model, artifact, qualification = self.make_inputs(evidence=False)
+        model = ModelIdentity(
+            model_id=model.model_id,
+            tasks=("code-generation",),
+            capabilities=("tools",),
+            evidence=(
+                MetadataEvidence(
+                    field="capabilities",
+                    source="test:reported-tools",
+                    kind="reported",
+                ),
+            ),
+        )
+        result = recommend_local_model(
+            model=model,
+            artifact=artifact,
+            qualification=qualification,
+            workload="coding",
+        )
+        self.assertEqual(result.status, "workload_unknown")
+
+    def test_matching_reported_capability_is_accepted(self):
+        model, artifact, qualification = self.make_inputs(evidence=False)
+        model = ModelIdentity(
+            model_id=model.model_id,
+            capabilities=("code-generation",),
+            evidence=(
+                MetadataEvidence(
+                    field="capabilities",
+                    source="test:reported-code-generation",
+                    kind="reported",
+                ),
+            ),
+        )
+        result = recommend_local_model(
+            model=model,
+            artifact=artifact,
+            qualification=qualification,
+            workload="coding",
+        )
+        self.assertEqual(result.status, "supported_candidate")
+
+    def test_ollama_generic_capabilities_do_not_prove_coding(self):
+        model, artifact, qualification = self.make_inputs(evidence=False)
+        model = ModelIdentity(
+            model_id=model.model_id,
+            capabilities=("completion", "thinking", "tools"),
+            evidence=(
+                MetadataEvidence(
+                    field="capabilities",
+                    source="test:ollama-capabilities",
+                    kind="reported",
+                ),
+            ),
+        )
+        result = recommend_local_model(
+            model=model,
+            artifact=artifact,
+            qualification=qualification,
+            workload="coding",
+        )
+        self.assertEqual(result.status, "workload_unknown")
+
+    def test_embedding_only_does_not_prove_chat(self):
+        model, artifact, qualification = self.make_inputs(evidence=False)
+        model = ModelIdentity(
+            model_id=model.model_id,
+            capabilities=("embedding",),
+            evidence=(
+                MetadataEvidence(
+                    field="capabilities",
+                    source="test:ollama-embedding",
+                    kind="reported",
+                ),
+            ),
+        )
+        result = recommend_local_model(
+            model=model,
+            artifact=artifact,
+            qualification=qualification,
+            workload="general_chat",
+        )
+        self.assertEqual(result.status, "workload_unknown")
+
     def test_remote_artifact_rejected(self):
         model, artifact, qualification = self.make_inputs(location="remote")
         with self.assertRaises(ValueError):

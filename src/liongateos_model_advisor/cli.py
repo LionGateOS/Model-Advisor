@@ -64,6 +64,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
 
     parser.add_argument(
+        "--port",
+        type=int,
+        default=8765,
+        metavar="PORT",
+        help="local dashboard port (default: 8765)",
+    )
+
+    parser.add_argument(
         "--passive",
         action="store_true",
         help=(
@@ -83,7 +91,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.manual:
             parser.error("--manual can only be used with hardware discovery")
 
-        server = create_dashboard_server(args.runtime_path)
+        if not 1 <= args.port <= 65535:
+            parser.error("--port must be between 1 and 65535")
+
+        server = create_dashboard_server(
+            args.runtime_path,
+            port=args.port,
+        )
         host, port = server.server_address
 
         print(f"Model Advisor dashboard: http://{host}:{port}/")

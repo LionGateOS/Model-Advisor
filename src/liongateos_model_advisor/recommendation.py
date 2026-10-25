@@ -71,18 +71,20 @@ def recommend_local_model(
         reported_tasks = set(model.tasks)
         reported_capabilities = set(model.capabilities)
 
-        matched = bool(
-            matching_tasks.intersection(reported_tasks | reported_capabilities)
-        )
+        matched_fields = set()
+        if matching_tasks.intersection(reported_tasks):
+            matched_fields.add("tasks")
+        if matching_tasks.intersection(reported_capabilities):
+            matched_fields.add("capabilities")
 
         workload_evidence = tuple(
             item.source
             for item in model.evidence
-            if item.field in ("tasks", "capabilities")
+            if item.field in matched_fields
             and item.kind == "reported"
         )
 
-        if not matched or not workload_evidence:
+        if not workload_evidence:
             status = "workload_unknown"
             reasons.append("No sufficiently sourced workload match")
         elif qualification.status == "qualified":

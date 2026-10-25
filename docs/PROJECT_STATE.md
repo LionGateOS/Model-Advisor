@@ -242,7 +242,7 @@ Next action:
 - Unknown hardware suitability is never promoted to qualified.
 - Remote artifacts and mismatched identities are rejected.
 - No performance scoring, downloads, model execution, or WorkRunner authority.
-- LIMITATION: Classification is not yet connected to the dashboard or CLI.
+- Dashboard integration is implemented; a dedicated recommendation CLI surface remains unfinished.
 - LIMITATION: Workload taxonomy is intentionally narrow and requires future review.
 
 ## M08 dashboard workload recommendations — 2026-10-25
@@ -258,4 +258,19 @@ Next action:
 - No model execution, downloads, installation or WorkRunner authority.
 - Verification: full Python suite, JavaScript syntax and regression tests
   must pass before this checkpoint is committed.
-- Browser visual inspection remains pending.
+- VERIFIED: Browser visual inspection completed successfully on 2026-10-25.
+
+
+## M08 recommendation evidence-quality correction — 2026-10-25
+
+- VERIFIED: Workload evidence must now come from the reported metadata field
+  that actually contains the matching workload label.
+- Generic Ollama capabilities such as `completion`, `thinking`, `tools`, and
+  `embedding` are not treated as proof of coding, general-chat, or reasoning
+  specialization.
+- Hardware qualification safeguards are unchanged.
+- Verification: 14 recommendation tests and the complete 167-test Python
+  suite pass; JavaScript syntax and Git whitespace checks pass.
+- LIMITATION: Current Ollama metadata does not provide the explicit workload
+  labels required for positive workload classification, so unknown results
+  remain expected unless suitable sourced task metadata is available.
