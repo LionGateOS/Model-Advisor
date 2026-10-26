@@ -298,3 +298,30 @@ Next action:
   quantization guidance, broader hardware/runtime coverage and richer workload
   metadata remain future work.
 - Model Advisor remains advisory only and gains no WorkRunner execution authority.
+
+
+## 2026-10-26 — M09A model-origin evidence reconciliation checkpoint
+
+- IMPLEMENTED / VERIFIED (automated): M09A local model-origin evidence
+  validator V1, read-only and fail-closed.
+- Files: `src/liongateos_model_advisor/model_origin_evidence.py` and
+  `tests/test_model_origin_evidence.py` (35 simulated-fixture tests).
+- Verified by read-only code review: the only cryptographic check recomputes
+  the SHA-256 of the small Ollama manifest file and chains the single
+  model-layer digest; model blobs are never read or hashed;
+  `upstream_origin_verified` is always `False`; upstream evidence strings
+  are preserved as claims only; no network access, no writes; reason strings
+  contain no paths, timestamps, or evidence values.
+- Anchored evidence does not change recommendation behavior; the
+  non-promotion regression test confirms `workload_unknown` status and
+  evidence sources remain unchanged.
+- The validator is not yet integrated into the CLI or dashboard; no
+  competing recommendation policy was introduced.
+- Verification in this session (disposable workspace temp dir under a
+  workspace-write sandbox grant, removed afterward): full suite
+  `discover` — **216 tests, OK**; targeted M09A module — **35 tests, OK**;
+  zero assertion failures.
+- The two M09A files and these record updates were uncommitted at this
+  checkpoint; commit and push await explicit owner approval.
+- Next: owner-approved commit of the four reviewed files; no push without
+  further approval.

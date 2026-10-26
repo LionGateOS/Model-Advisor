@@ -198,3 +198,23 @@ and do not block this bounded M08 closeout.
 The public/private boundary is unchanged: Model Advisor provides public advisory
 evidence and recommendations only. It has no WorkRunner execution, routing,
 approval, installation, dispatch, or policy authority.
+
+## M09A model-origin evidence validator V1 — 2026-10-26
+
+- IMPLEMENTED / VERIFIED (automated): read-only, fail-closed local
+  origin-evidence validation for one specific local Ollama artifact under the
+  single documented trust root `local-ollama-manifest-digest-record`.
+- The only cryptographic check recomputes the SHA-256 of the small local
+  Ollama manifest file and chains its single model-layer digest to the
+  recorded evidence. Model weight blobs are never read.
+- `upstream_origin_verified` is always `False` in V1; upstream-origin strings
+  are recorded as claims only. Names, URLs, sizes, architectures and
+  quantizations are never accepted as proof of origin.
+- Reuses the existing manifest-identity parsing helpers; no competing
+  manifest scanner or recommendation policy was introduced.
+- Verification: full suite reached **216 tests, OK**, including **35** new
+  simulated-fixture M09A tests, all passing; zero assertion failures.
+- LIMITATION: no upstream-origin verification, no model-blob verification,
+  no CLI or dashboard integration, and the trust root remains a declared
+  local assumption rather than proof of what the registry received.
+- Uncommitted at this checkpoint; commit awaits explicit owner approval.
