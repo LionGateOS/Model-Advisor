@@ -8,6 +8,7 @@ from collections.abc import Sequence
 
 from .capability_discovery import collect_runtime_capability_evidence
 from .compatibility import assess_compatibility
+from .dashboard import collect_dashboard_data
 from .dashboard_server import create_dashboard_server
 from .discovery import discover_hardware
 from .manual import enter_hardware_manually
@@ -33,12 +34,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             "models",
             "dashboard",
             "qualification",
+            "recommend",
         ),
         default="hardware",
         help=(
             "inspect hardware (default), installed AI runtimes, "
             "hardware/runtime compatibility, local model metadata, "
-            "launch the local dashboard, or show qualification capabilities"
+            "launch the local dashboard, show qualification capabilities, "
+            "or show conservative local-model recommendations"
         ),
     )
     parser.add_argument(
@@ -72,6 +75,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
 
     parser.add_argument(
+        "--workload",
+        choices=("coding", "general_chat", "reasoning"),
+        help="with recommend, return only the selected workload",
+    )
+
+    parser.add_argument(
         "--passive",
         action="store_true",
         help=(
@@ -86,6 +95,37 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "qualification":
         print(json.dumps(qualification_capabilities(), indent=2))
         return 0
+
+    if args.command == "recommend":
+        if args.manual:
+            parser.error("--manual can only be used with hardware discovery")
+        if args.model_source != "local":
+            parser.error("--model-source cannot be used with recommend")
+
+        data = collect_dashboard_data(args.runtime_path)
+        recommendations = data["workload_recommendations"]
+        if args.workload is not None:
+            recommendations = [
+                item
+                for item in recommendations
+                if item["workload"] == args.workload
+            ]
+
+        try:
+            print(json.dumps(
+                {
+                    "recommendations": recommendations,
+                    "conservative": True,
+                    "performance_ranking": False,
+                },
+                indent=2,
+            ))
+        except BrokenPipeError:
+            return 0
+        return 0
+
+    if args.workload is not None:
+        parser.error("--workload can only be used with recommend")
 
     if args.command == "dashboard":
         if args.manual:

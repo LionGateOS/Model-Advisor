@@ -123,7 +123,7 @@ guidance and recommendation ranking remain PLANNED.
 - Unknown hardware suitability is never promoted to qualified.
 - Remote artifacts and mismatched identities are rejected.
 - No performance scoring, downloads, model execution, or WorkRunner authority.
-- Dashboard integration is implemented; a dedicated recommendation CLI surface remains unfinished.
+- Dashboard integration and a dedicated conservative recommendation CLI surface are implemented.
 - LIMITATION: Workload taxonomy is intentionally narrow and requires future review.
 
 ## M08 dashboard workload recommendations — 2026-10-25
@@ -159,4 +159,18 @@ Optional registry-relative identity is now derived from a unique local Ollama
 manifest whose model-layer blob exists and matches the declared size. Invalid,
 missing, and ambiguous matches remain unknown. This does not infer workload
 specialization and does not change recommendation or hardware qualification.
-Verification and review are required before commit.
+Verification, live registry identity review, backup, commit and push completed.
+
+## M08 recommendation CLI — 2026-10-25
+
+- IMPLEMENTED: `recommend` exposes the existing conservative local-artifact
+  recommendation pipeline as JSON.
+- `--workload` supports coding, general_chat and reasoning.
+- The CLI reuses the dashboard's existing qualification and recommendation
+  pipeline rather than introducing competing recommendation policy.
+- Output explicitly states that recommendations are conservative and that
+  performance ranking is not provided.
+- Remote-backed artifacts remain excluded by the existing pipeline.
+- Numerical performance ranking, benchmark claims and model execution are not
+  introduced.
+- Final verification is required before M08 closeout.

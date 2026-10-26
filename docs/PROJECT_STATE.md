@@ -242,7 +242,7 @@ Next action:
 - Unknown hardware suitability is never promoted to qualified.
 - Remote artifacts and mismatched identities are rejected.
 - No performance scoring, downloads, model execution, or WorkRunner authority.
-- Dashboard integration is implemented; a dedicated recommendation CLI surface remains unfinished.
+- Dashboard integration and a dedicated conservative recommendation CLI surface are implemented.
 - LIMITATION: Workload taxonomy is intentionally narrow and requires future review.
 
 ## M08 dashboard workload recommendations — 2026-10-25
@@ -285,4 +285,4 @@ Next action:
 - Remote-backed registrations do not receive local manifest identities.
 - Registry identity is provenance only; recommendation and hardware
   qualification behavior is unchanged.
-- Verification pending: full test suite and final review before commit.
+- VERIFIED: full suite, live local registry identity, privacy, backup, commit and push completed.
