@@ -224,6 +224,7 @@ class ModelArtifact:
     artifact_id: str
     model_id: str
     digest: str | None = None
+    registry_identity: str | None = None
     location: ArtifactLocation = "unknown"
     format: str | None = None
     quantization: str | None = None

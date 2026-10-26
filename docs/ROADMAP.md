@@ -152,3 +152,11 @@ suite, JavaScript syntax check, and Git whitespace check pass.
 
 Explicit workload metadata for local Ollama models remains incomplete;
 broader ranking, benchmarking, and quantization guidance remain future work.
+
+## M08 local Ollama registry identity — 2026-10-25
+
+Optional registry-relative identity is now derived from a unique local Ollama
+manifest whose model-layer blob exists and matches the declared size. Invalid,
+missing, and ambiguous matches remain unknown. This does not infer workload
+specialization and does not change recommendation or hardware qualification.
+Verification and review are required before commit.

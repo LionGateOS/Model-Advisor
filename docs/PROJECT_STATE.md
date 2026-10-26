@@ -274,3 +274,15 @@ Next action:
 - LIMITATION: Current Ollama metadata does not provide the explicit workload
   labels required for positive workload classification, so unknown results
   remain expected unless suitable sourced task metadata is available.
+
+## M08 local Ollama registry identity — 2026-10-25
+
+- IMPLEMENTED: optional registry-relative identity on model artifacts.
+- Identity is attached only when a unique local manifest matches the exact
+  registration path and its model-layer blob exists with the declared size.
+- Missing, malformed, invalid, or ambiguous matches remain unknown.
+- Local filesystem paths are not exposed in the normalized identity.
+- Remote-backed registrations do not receive local manifest identities.
+- Registry identity is provenance only; recommendation and hardware
+  qualification behavior is unchanged.
+- Verification pending: full test suite and final review before commit.

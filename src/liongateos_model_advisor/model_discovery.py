@@ -3,18 +3,21 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from collections.abc import Mapping
 from typing import Any
 from urllib.error import URLError
 from urllib.request import ProxyHandler, Request, build_opener
 
 from .model_profile import (
+    MetadataEvidence,
     ModelArtifact,
     ModelIdentity,
     ModelProfile,
     ModelSourceStatus,
 )
 from .model_sources import profile_from_ollama_show
+from .ollama_manifest_identity import discover_registry_identity
 
 
 OLLAMA_BASE_URL = "http://127.0.0.1:11434"
@@ -163,6 +166,30 @@ def discover_ollama_models() -> ModelProfile:
                 digest=_clean_string(entry.get("digest")),
                 artifact_location=artifact_location,
             )
+
+            if artifact_location == "local":
+                registry_identity = discover_registry_identity(name)
+                if registry_identity:
+                    normalized = replace(
+                        normalized,
+                        artifacts=tuple(
+                            replace(
+                                artifact,
+                                registry_identity=registry_identity,
+                                evidence=artifact.evidence + (
+                                    MetadataEvidence(
+                                        field="registry_identity",
+                                        source=(
+                                            "ollama:manifest:"
+                                            + registry_identity
+                                        ),
+                                        kind="reported",
+                                    ),
+                                ),
+                            )
+                            for artifact in normalized.artifacts
+                        ),
+                    )
         except (OSError, URLError, ValueError):
             # One unreadable model must not invalidate the rest of the
             # local inventory, but the profile must record incompleteness.
