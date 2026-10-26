@@ -189,7 +189,106 @@ class ModelOriginEvidenceTests(unittest.TestCase):
         )
         result = self.validate(artifact=artifact)
         self.assertEqual(result.status, "rejected")
-        self.assertIn("artifact_name_registry_mismatch", result.reasons)
+        self.assertIn("malformed_artifact_identity", result.reasons)
+
+    def test_traversal_artifact_name_in_middle_fails_closed(self):
+        artifact = ArtifactOriginRecord(
+            model_name="team/../evil:latest",
+            location="local",
+            registry_identity=self.registry_identity,
+            manifest_digest=self.manifest_digest,
+            model_layer_digest=self.model_layer_digest,
+        )
+        result = self.validate(artifact=artifact)
+        self.assertEqual(result.status, "rejected")
+        self.assertIn("malformed_artifact_identity", result.reasons)
+
+    def test_dot_component_artifact_name_fails_closed(self):
+        artifact = ArtifactOriginRecord(
+            model_name="./evil:latest",
+            location="local",
+            registry_identity=self.registry_identity,
+            manifest_digest=self.manifest_digest,
+            model_layer_digest=self.model_layer_digest,
+        )
+        result = self.validate(artifact=artifact)
+        self.assertEqual(result.status, "rejected")
+        self.assertIn("malformed_artifact_identity", result.reasons)
+
+    def test_dot_component_in_middle_artifact_name_fails_closed(self):
+        artifact = ArtifactOriginRecord(
+            model_name="team/./evil:latest",
+            location="local",
+            registry_identity=self.registry_identity,
+            manifest_digest=self.manifest_digest,
+            model_layer_digest=self.model_layer_digest,
+        )
+        result = self.validate(artifact=artifact)
+        self.assertEqual(result.status, "rejected")
+        self.assertIn("malformed_artifact_identity", result.reasons)
+
+    def test_traversal_registry_identity_fails_closed(self):
+        artifact = ArtifactOriginRecord(
+            model_name="example:latest",
+            location="local",
+            registry_identity="registry.ollama.ai/../library/example/latest",
+            manifest_digest=self.manifest_digest,
+            model_layer_digest=self.model_layer_digest,
+        )
+        result = self.validate(artifact=artifact)
+        self.assertEqual(result.status, "rejected")
+        self.assertIn(
+            "malformed_artifact_registry_identity",
+            result.reasons,
+        )
+
+    def test_dot_component_registry_identity_fails_closed(self):
+        artifact = ArtifactOriginRecord(
+            model_name="example:latest",
+            location="local",
+            registry_identity="registry.ollama.ai/./library/example/latest",
+            manifest_digest=self.manifest_digest,
+            model_layer_digest=self.model_layer_digest,
+        )
+        result = self.validate(artifact=artifact)
+        self.assertEqual(result.status, "rejected")
+        self.assertIn(
+            "malformed_artifact_registry_identity",
+            result.reasons,
+        )
+
+    def test_traversal_evidence_registry_identity_fails_closed(self):
+        record = OriginEvidenceRecord(
+            source="local-registry-manifest-record",
+            registry_identity="registry.ollama.ai/../library/example/latest",
+            manifest_digest=self.manifest_digest,
+            model_layer_digest=self.model_layer_digest,
+            captured_at=NOW - 60.0,
+        )
+        result = self.validate(evidence_records=(record,))
+        self.assertEqual(result.status, "rejected")
+        self.assertIn(
+            "malformed_evidence_registry_identity",
+            result.reasons,
+        )
+
+    def test_dotted_artifact_and_registry_identity_still_anchored(self):
+        artifact = ArtifactOriginRecord(
+            model_name="model.v2:latest",
+            location="local",
+            registry_identity="registry.ollama.ai/library/model.v2/latest",
+            manifest_digest=self.manifest_digest,
+            model_layer_digest=self.model_layer_digest,
+        )
+        evidence = OriginEvidenceRecord(
+            source="local-registry-manifest-record",
+            registry_identity="registry.ollama.ai/library/model.v2/latest",
+            manifest_digest=self.manifest_digest,
+            model_layer_digest=self.model_layer_digest,
+            captured_at=NOW - 60.0,
+        )
+        result = self.validate(artifact=artifact, evidence_records=(evidence,))
+        self.assertEqual(result.status, "anchored")
 
     def test_non_string_artifact_name_fails_closed(self):
         artifact = ArtifactOriginRecord(

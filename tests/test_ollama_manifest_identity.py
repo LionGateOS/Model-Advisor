@@ -82,6 +82,44 @@ class OllamaManifestIdentityTests(unittest.TestCase):
             discover_registry_identity("../example:latest", models_roots=(self.root,))
         )
 
+    def test_traversal_in_middle_is_unknown(self):
+        self.add_manifest("registry.ollama.ai/library/example/latest")
+        self.assertIsNone(
+            discover_registry_identity(
+                "team/../example:latest", models_roots=(self.root,)
+            )
+        )
+
+    def test_dot_component_prefix_is_unknown(self):
+        self.add_manifest("registry.ollama.ai/library/example/latest")
+        self.assertIsNone(
+            discover_registry_identity(
+                "./example:latest", models_roots=(self.root,)
+            )
+        )
+
+    def test_dot_component_in_middle_is_unknown(self):
+        self.add_manifest("registry.ollama.ai/library/example/latest")
+        self.assertIsNone(
+            discover_registry_identity(
+                "team/./example:latest", models_roots=(self.root,)
+            )
+        )
+
+    def test_dotted_model_names_remain_valid(self):
+        self.add_manifest("registry.ollama.ai/library/model.v2/latest")
+        self.assertEqual(
+            discover_registry_identity("model.v2:latest", models_roots=(self.root,)),
+            "registry.ollama.ai/library/model.v2/latest",
+        )
+        self.add_manifest("registry.ollama.ai/library/model..v2/latest")
+        self.assertEqual(
+            discover_registry_identity(
+                "model..v2:latest", models_roots=(self.root,)
+            ),
+            "registry.ollama.ai/library/model..v2/latest",
+        )
+
     def test_manifest_without_one_model_layer_is_unknown(self):
         self.add_manifest(
             "registry.ollama.ai/library/example/latest",

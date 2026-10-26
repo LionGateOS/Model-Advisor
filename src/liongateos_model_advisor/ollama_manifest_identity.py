@@ -12,6 +12,15 @@ _SAFE_COMPONENT = re.compile(r"^[A-Za-z0-9._-]+$")
 _MODEL_LAYER = "application/vnd.ollama.image.model"
 
 
+def _is_safe_component(part: str) -> bool:
+    """Accept a safe path component, rejecting literal ``.`` and ``..``.
+
+    Ordinary dotted names such as ``model.v2`` or ``model..v2`` stay valid;
+    only whole components made only of one or two dots are traversal.
+    """
+    return part not in (".", "..") and _SAFE_COMPONENT.fullmatch(part) is not None
+
+
 def _model_path_parts(model_name: str) -> tuple[str, ...] | None:
     """Return safe registration path components, not a guessed upstream ID."""
     name = model_name.strip()
@@ -32,7 +41,7 @@ def _model_path_parts(model_name: str) -> tuple[str, ...] | None:
     if len(parts) == 1:
         parts.insert(0, "library")
 
-    if any(not _SAFE_COMPONENT.fullmatch(part) for part in (*parts, tag)):
+    if any(not _is_safe_component(part) for part in (*parts, tag)):
         return None
 
     return (*parts, tag)

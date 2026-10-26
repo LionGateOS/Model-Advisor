@@ -58,7 +58,7 @@ from typing import Any, Callable, Literal, Sequence
 from .ollama_manifest_identity import (
     _DIGEST,
     _MODEL_LAYER,
-    _SAFE_COMPONENT,
+    _is_safe_component,
     _model_path_parts,
 )
 
@@ -140,7 +140,7 @@ def _registry_identity_parts(
     parts = tuple(value.split("/"))
     if len(parts) < 2:
         return None
-    if any(not part or not _SAFE_COMPONENT.fullmatch(part) for part in parts):
+    if any(not part or not _is_safe_component(part) for part in parts):
         return None
     return parts
 
