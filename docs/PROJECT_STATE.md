@@ -10,7 +10,7 @@ Verify the live repository before relying on any recorded checkpoint.
 - Project: LionGateOS Model Advisor
 - Public repository: `LionGateOS/Model-Advisor`
 - Purpose: **Know what AI your machine should run.**
-- Active milestone: M08 — recommendation layer.
+- M08 — qualification and recommendation layer: **COMPLETE / VERIFIED** at its bounded conservative scope.
 - Public/private boundary: Model Advisor is a standalone public project.
 - Machine-specific checkout paths are intentionally excluded from these
   public records.
@@ -34,18 +34,14 @@ when current status changes.
 ## Last verified repository checkpoint
 
 - Branch: `m08-recommendation-layer`
-- Last recorded M08 implementation checkpoint: `abc31d0` —
-  `Harden M08 compatibility and add durable continuity`.
-- Later continuity-only commits may exist beyond that checkpoint. Always verify
-  the live HEAD with Git instead of treating an embedded documentation commit
-  ID as permanently current.
-- `origin/m08-recommendation-layer` was still at `3f9171f` at the latest
-  verified pre-push check.
-- The reviewed eight-file M08 hardening and continuity change set was committed
-  as `abc31d0`.
-- Immediately after the commit, `git status --short` was clean.
-- The dashboard implementation file had no outstanding change.
-- No push had been performed at that checkpoint.
+- Verified M08 implementation checkpoint: `29d1cb6` —
+  `Add conservative recommendation CLI`.
+- Local HEAD and `origin/m08-recommendation-layer` were verified identical at
+  `29d1cb6005164d26895389430b9039f39677b718`.
+- Working tree was clean after the verified push.
+- Final implementation verification: **181 Python tests passed**, JavaScript
+  syntax passed, live recommendation CLI passed, privacy check passed, and the
+  backup checksum/readability check passed.
 
 Recheck `git status` and `git log` before using this as a current checkpoint.
 The subsequent continuation reread all durable records, verified the live branch and HEAD, and completed a no-pager review of the code/test patch.
@@ -120,7 +116,7 @@ before relying on or changing an artifact.
 
 ## Pending decisions, failures and unresolved work
 
-- Full recommendation logic remains unfinished.
+- Conservative workload recommendation logic is implemented and verified; numerical performance ranking and broader recommendation coverage remain future work.
 - Benchmark execution/comparison remains unfinished.
 - Arbitrary GGUF filesystem scanning is not part of Model Advisor.
 - The owner-requested “NVIDIA Neatron Bolt 74B” evaluation remains
@@ -143,11 +139,11 @@ limitations include:
   explicit positive capability evidence.
 - Live local model inventory uses the Ollama API.
 - Arbitrary GGUF filesystem scanning is not implemented in Model Advisor.
-- Full recommendation logic and benchmark execution/comparison remain
-  unfinished.
+- Conservative workload recommendation logic is implemented and verified;
+  benchmark execution/comparison and numerical performance ranking remain future work.
 
-Do not infer a completed recommendation engine from the branch name or from
-the existence of qualification capability surfaces.
+Do not infer universal model ranking or benchmark-backed performance guidance
+from the completed conservative M08 recommendation surfaces.
 
 ## Pending owner-requested model evaluation
 
@@ -197,14 +193,14 @@ Next action:
 - Working tree was clean at the start of the current job.
 - FitLLM reference inventory: 49 vectors; three verified,
   46 not yet assessed for Model Advisor conformance.
-- Full recommendation ranking and benchmark execution remain unfinished.
+- Numerical performance ranking and benchmark execution remain future work.
 - No GPU or model execution was required.
 - Next: map additional reference vectors without weakening conservative
   unknown/unsupported behavior.
 
 ## 2026-10-25 — M08 dashboard context comparison checkpoint
 
-- Status: **IMPLEMENTED / AUTOMATED TESTS VERIFIED**; browser visual review pending.
+- Status: **IMPLEMENTED / VERIFIED**; automated tests and subsequent browser visual review passed.
 - Added `context_comparisons` to the existing read-only dashboard payload for
   locally stored Ollama artifacts only.
 - The dashboard compares 4096, 8192, 16384 and 32768 tokens using the existing
@@ -219,7 +215,7 @@ Next action:
   errored because this sandbox denied loopback socket creation with
   `PermissionError: [Errno 1] Operation not permitted`. No assertion failure
   was reported. A subsequent full run in the owner's normal terminal
-  passed all 131 tests; browser visual verification remains pending.
+  passed all 131 tests; browser visual verification was subsequently completed successfully.
 
 ## M08 Ollama active-memory observation checkpoint — 2026-10-25
 
@@ -231,7 +227,7 @@ Next action:
 - Malformed and unavailable API responses are handled conservatively.
 - Live Ollama endpoint was reachable with zero loaded models.
 - Active-model measurements remain unverified; no model was started.
-- M08 recommendation ranking remains unfinished.
+- Numerical performance ranking remains future work outside the bounded M08 closeout.
 
 ## M08 Conservative Recommendation V1 — 2026-10-25
 
@@ -286,3 +282,19 @@ Next action:
 - Registry identity is provenance only; recommendation and hardware
   qualification behavior is unchanged.
 - VERIFIED: full suite, live local registry identity, privacy, backup, commit and push completed.
+
+## M08 final closeout — 2026-10-25
+
+- Status: **COMPLETE / VERIFIED** at the bounded conservative recommendation scope.
+- Final implementation checkpoint: `29d1cb6` — `Add conservative recommendation CLI`.
+- Local and remote feature-branch commits were verified identical after push.
+- Final implementation suite: **181 tests passed**.
+- Live `recommend --workload coding` execution succeeded against 11 local Ollama
+  artifacts; all remained `workload_unknown` because sufficiently sourced coding
+  metadata was absent. This is intended conservative behavior.
+- Privacy, JavaScript syntax, Git whitespace, backup checksum and backup
+  readability checks passed.
+- Numerical performance ranking, benchmark execution/comparison, comprehensive
+  quantization guidance, broader hardware/runtime coverage and richer workload
+  metadata remain future work.
+- Model Advisor remains advisory only and gains no WorkRunner execution authority.

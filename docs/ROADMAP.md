@@ -24,7 +24,7 @@ by itself prove every real-hardware scenario is covered.
 | M05 — Model metadata | `ea8ef8f` — Add provenance-first model metadata foundation | IMPLEMENTED; metadata normalization is not the same as fetching artifacts |
 | M06 — Memory estimation | `d8dd8df` — Add M06 model memory estimation foundation | IMPLEMENTED foundation; do not infer universal fit accuracy |
 | M07 — Ecosystem discovery and conservative fit foundations | `2efb00f` — Add ecosystem model discovery and conservative fit foundations | IMPLEMENTED foundation; broader recommendation behavior remains unfinished |
-| M08 — Qualification and recommendation layer | `2a52897`, `ec0cb73`, `3f9171f` | ACTIVE; qualification surfaces are committed, but full recommendation logic remains unfinished |
+| M08 — Qualification and recommendation layer | `29d1cb6` — Add conservative recommendation CLI | COMPLETE; conservative qualification and workload recommendation surfaces are implemented and verified; broader ranking, benchmarking, quantization guidance, and workload coverage remain future work |
 
 ## Current M08 work
 
@@ -42,9 +42,9 @@ Verified hardening included:
 The last full code/test verification before documentation-only continuity
 commits passed all 121 tests in 2.532 seconds.
 
-Current M08 investigation is focused on reusing existing model metadata,
-catalog discovery, fit, execution-fit, and qualification foundations before
-adding recommendation ranking logic.
+M08 is complete at its bounded conservative scope. Existing model metadata,
+catalog discovery, fit, execution-fit, and qualification foundations now feed
+read-only workload recommendations without inventing performance rankings.
 
 Hugging Face catalog discovery already supports bounded public search,
 bounded detail enrichment, task/parameter filtering, deduplication, explicit
@@ -111,8 +111,9 @@ recommendation engine or universal model/hardware compatibility.
 Ollama artifacts at 4096, 8192, 16384 and 32768 tokens, preserves unknown
 memory evidence, separates context-limit status from memory fit, and shows
 independent GPU assessments. The complete 131-test Python suite and JavaScript syntax checks pass
-outside the restricted sandbox; browser visual review remains pending. Full quantization
-guidance and recommendation ranking remain PLANNED.
+outside the restricted sandbox; browser visual review was subsequently completed
+successfully. Full quantization guidance and numerical performance ranking remain
+PLANNED future work.
 
 ## M08 Conservative Recommendation V1 — 2026-10-25
 
@@ -173,4 +174,27 @@ Verification, live registry identity review, backup, commit and push completed.
 - Remote-backed artifacts remain excluded by the existing pipeline.
 - Numerical performance ranking, benchmark claims and model execution are not
   introduced.
-- Final verification is required before M08 closeout.
+- VERIFIED: live CLI, privacy, full 181-test suite, JavaScript syntax, backup, commit and push completed before M08 closeout.
+
+## M08 closeout — 2026-10-25
+
+**COMPLETE / VERIFIED:** M08 is closed at its intentionally conservative scope.
+
+Verified delivered behavior includes qualification, local Ollama suitability
+presentation, context comparison, evidence-bounded workload recommendations for
+coding/general chat/reasoning, dashboard presentation, a structured recommendation
+CLI, and local Ollama registry identity provenance.
+
+Final M08 verification reached **181 passing Python tests**. The recommendation
+CLI was also exercised against the live local Ollama inventory, privacy checks
+passed, JavaScript syntax and Git whitespace checks passed, and the final CLI
+checkpoint was backed up before commit.
+
+M08 does **not** claim numerical performance ranking, benchmark-derived model
+ranking, comprehensive quantization guidance, universal hardware/runtime support,
+or comprehensive workload metadata. Those are later product/research milestones
+and do not block this bounded M08 closeout.
+
+The public/private boundary is unchanged: Model Advisor provides public advisory
+evidence and recommendations only. It has no WorkRunner execution, routing,
+approval, installation, dispatch, or policy authority.

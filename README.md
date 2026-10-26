@@ -39,7 +39,7 @@ Current limitations:
 - runtime discovery currently covers Ollama, llama.cpp, and vLLM;
 - hardware/runtime compatibility currently depends on explicit positive capability evidence and may remain unknown when evidence is unavailable;
 - live model inventory discovery currently uses the local Ollama API; Hugging Face and GGUF normalization exist as metadata adapters but do not yet perform remote fetching or arbitrary file scanning;
-- model compatibility, hardware-fit estimation, and recommendation logic are not yet implemented;
+- conservative model qualification, hardware-fit foundations, and workload recommendation logic are implemented for the currently supported evidence paths; coverage is not universal;
 - benchmark execution and comparison are not yet implemented.
 
 Planned areas include:
@@ -166,6 +166,21 @@ Show the capability contract from the repository root:
 This command reports the contract only. It does not perform live per-model
 recommendation or performance prediction.
 
+## Conservative Recommendation CLI
+
+Show conservative recommendations for locally stored Ollama artifacts:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor recommend
+
+Filter to one supported workload:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor recommend --workload coding
+
+Supported initial workloads are `coding`, `general_chat`, and `reasoning`.
+Recommendations require explicit sourced workload evidence and preserve unknown
+hardware or metadata states rather than guessing. The command does not download,
+install, launch, benchmark, or numerically rank models.
+
 ## Open the Local Dashboard
 
 Model Advisor includes a local read-only dashboard that presents the same verified hardware, runtime discovery, and compatibility information in a browser:
@@ -194,10 +209,12 @@ The dashboard shows compatibility conclusions alongside their reasons and eviden
 
 The dashboard presents implemented hardware, runtime, compatibility, and Ollama model-metadata capabilities. It clearly distinguishes locally stored artifacts from remote-backed registrations and exposes metadata provenance. Its JSON data payload includes a `qualification_capabilities` object containing the same qualification contract exposed by the CLI: supported statuses, supported execution paths, and `conservative_unknown: true`.
 
-Qualification describes an evidence-based capability contract; it is not a
-complete recommendation engine. Live per-model recommendations, performance
-prediction, quantization guidance, benchmark results, confidence scoring, and
-concurrency estimates are not yet implemented.
+Qualification feeds the conservative recommendation layer for locally stored
+Ollama artifacts. Model Advisor now exposes per-model workload recommendations
+for coding, general chat, and reasoning through the dashboard and CLI. Missing
+or insufficient evidence remains unknown. Numerical performance prediction,
+benchmark-derived ranking, comprehensive quantization guidance, confidence
+scoring, and concurrency estimates are not claimed.
 
 ## Contributing
 
