@@ -66,6 +66,62 @@ class OllamaModelDiscoveryTests(unittest.TestCase):
             ],
         )
 
+    @patch("liongateos_model_advisor.model_discovery.discover_registry_identity")
+    @patch("liongateos_model_advisor.model_discovery._request_json")
+    def test_local_manifest_identity_is_attached_with_provenance(
+        self, request, identity
+    ):
+        request.side_effect = (
+            {"models": [{"name": "example:latest", "digest": "sha256:abc", "size": 100}]},
+            {
+                "details": {"format": "gguf", "family": "example"},
+                "model_info": {"general.architecture": "example"},
+                "capabilities": ["completion"],
+            },
+        )
+        identity.return_value = "registry.ollama.ai/library/example/latest"
+
+        profile = discover_ollama_models()
+
+        artifact = profile.artifacts[0]
+        self.assertEqual(
+            artifact.registry_identity,
+            "registry.ollama.ai/library/example/latest",
+        )
+        self.assertTrue(any(
+            item.field == "registry_identity"
+            and item.source == "ollama:manifest:registry.ollama.ai/library/example/latest"
+            and item.kind == "reported"
+            for item in artifact.evidence
+        ))
+
+    @patch("liongateos_model_advisor.model_discovery.discover_registry_identity")
+    @patch("liongateos_model_advisor.model_discovery._request_json")
+    def test_remote_registration_never_gets_local_manifest_identity(
+        self, request, identity
+    ):
+        request.side_effect = (
+            {
+                "models": [{
+                    "name": "cloud-example:cloud",
+                    "digest": "sha256:remote",
+                    "size": 308,
+                    "remote_host": "private.example.invalid",
+                    "remote_model": "private/model",
+                }]
+            },
+            {
+                "details": {"parameter_size": "2.81T"},
+                "model_info": {"general.architecture": "example"},
+                "capabilities": ["completion"],
+            },
+        )
+
+        profile = discover_ollama_models()
+
+        self.assertIsNone(profile.artifacts[0].registry_identity)
+        identity.assert_not_called()
+
     @patch(
         "liongateos_model_advisor.model_discovery._request_json"
     )

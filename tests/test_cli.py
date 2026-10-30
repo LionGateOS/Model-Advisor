@@ -153,6 +153,91 @@ class CLITests(unittest.TestCase):
         )
         self.assertNotIn("/private/example", output.getvalue())
 
+    @patch("liongateos_model_advisor.cli.assess_compatibility")
+    @patch(
+        "liongateos_model_advisor.cli.collect_runtime_capability_evidence"
+    )
+    @patch("liongateos_model_advisor.cli.discover_runtimes")
+    @patch("liongateos_model_advisor.cli.discover_hardware")
+    def test_compatibility_passive_skips_capability_probes(
+        self,
+        discover_hardware,
+        discover_runtimes,
+        collect_evidence,
+        assess,
+    ):
+        hardware = HardwareProfile(
+            cpu=CPU(model="Example CPU")
+        )
+        runtimes = RuntimeProfile(
+            runtimes=(
+                Runtime(name="llama.cpp", available=True),
+            )
+        )
+        compatibility = RuntimeProfile()
+
+        discover_hardware.return_value = hardware
+        discover_runtimes.return_value = runtimes
+        assess.return_value = compatibility
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(
+                [
+                    "compatibility",
+                    "--passive",
+                    "--runtime-path",
+                    "/private/example/llama.cpp/bin",
+                ]
+            )
+
+        self.assertEqual(result, 0)
+        discover_hardware.assert_called_once_with()
+        discover_runtimes.assert_called_once_with(
+            ["/private/example/llama.cpp/bin"]
+        )
+        collect_evidence.assert_not_called()
+        assess.assert_called_once_with(
+            hardware,
+            runtimes,
+            (),
+        )
+        self.assertNotIn("/private/example", output.getvalue())
+
+    @patch("liongateos_model_advisor.cli.assess_compatibility")
+    @patch(
+        "liongateos_model_advisor.cli.collect_runtime_capability_evidence"
+    )
+    @patch("liongateos_model_advisor.cli.discover_runtimes")
+    @patch("liongateos_model_advisor.cli.discover_hardware")
+    def test_compatibility_default_runs_capability_probes(
+        self,
+        discover_hardware,
+        discover_runtimes,
+        collect_evidence,
+        assess,
+    ):
+        hardware = HardwareProfile(
+            cpu=CPU(model="Example CPU")
+        )
+        runtimes = RuntimeProfile()
+        compatibility = RuntimeProfile()
+
+        discover_hardware.return_value = hardware
+        discover_runtimes.return_value = runtimes
+        collect_evidence.return_value = ()
+        assess.return_value = compatibility
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(["compatibility"])
+
+        self.assertEqual(result, 0)
+        discover_hardware.assert_called_once_with()
+        discover_runtimes.assert_called_once_with([])
+        collect_evidence.assert_called_once_with(runtimes, [])
+        assess.assert_called_once_with(hardware, runtimes, ())
+
 
     @patch("liongateos_model_advisor.cli.discover_ollama_models")
     def test_models_command_outputs_local_model_profile(self, discover):
@@ -221,6 +306,70 @@ class CLITests(unittest.TestCase):
         )
         discover.assert_called_once_with()
 
+    @patch("liongateos_model_advisor.cli.collect_dashboard_data")
+    def test_recommend_command_outputs_conservative_recommendations(self, collect):
+        collect.return_value = {
+            "workload_recommendations": [
+                {
+                    "model_id": "ollama:example",
+                    "artifact_id": "artifact-1",
+                    "workload": "coding",
+                    "status": "workload_unknown",
+                    "reasons": ["No sufficiently sourced workload match"],
+                    "evidence_sources": [],
+                },
+                {
+                    "model_id": "ollama:example",
+                    "artifact_id": "artifact-1",
+                    "workload": "reasoning",
+                    "status": "needs_hardware_verification",
+                    "reasons": [
+                        "Workload metadata matches but hardware qualification is incomplete"
+                    ],
+                    "evidence_sources": ["test:reasoning"],
+                },
+            ]
+        }
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(["recommend"])
+
+        data = json.loads(output.getvalue())
+        self.assertEqual(result, 0)
+        self.assertTrue(data["conservative"])
+        self.assertFalse(data["performance_ranking"])
+        self.assertEqual(len(data["recommendations"]), 2)
+        collect.assert_called_once_with([])
+
+    @patch("liongateos_model_advisor.cli.collect_dashboard_data")
+    def test_recommend_command_filters_workload(self, collect):
+        collect.return_value = {
+            "workload_recommendations": [
+                {"workload": "coding", "status": "workload_unknown"},
+                {"workload": "reasoning", "status": "workload_unknown"},
+            ]
+        }
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(["recommend", "--workload", "reasoning"])
+
+        data = json.loads(output.getvalue())
+        self.assertEqual(result, 0)
+        self.assertEqual(
+            [item["workload"] for item in data["recommendations"]],
+            ["reasoning"],
+        )
+
+    def test_workload_rejected_outside_recommend(self):
+        with self.assertRaises(SystemExit):
+            main(["models", "--workload", "coding"])
+
+    def test_recommend_rejects_nonlocal_model_source(self):
+        with self.assertRaises(SystemExit):
+            main(["recommend", "--model-source", "huggingface"])
+
     @patch("liongateos_model_advisor.cli.create_dashboard_server")
     def test_dashboard_command_starts_local_server(self, create_server):
         class FakeServer:
@@ -261,8 +410,38 @@ class CLITests(unittest.TestCase):
             output.getvalue(),
         )
         create_server.assert_called_once_with(
-            ["/private/example/llama.cpp/bin"]
+            ["/private/example/llama.cpp/bin"],
+            port=8765,
         )
+
+
+    @patch("liongateos_model_advisor.cli.create_dashboard_server")
+    def test_dashboard_custom_port_is_forwarded(self, create_server):
+        class FakeServer:
+            server_address = ("127.0.0.1", 8766)
+
+            def serve_forever(self):
+                return None
+
+            def server_close(self):
+                return None
+
+        create_server.return_value = FakeServer()
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = main(["dashboard", "--port", "8766"])
+
+        self.assertEqual(result, 0)
+        self.assertIn("http://127.0.0.1:8766/", output.getvalue())
+        create_server.assert_called_once_with([], port=8766)
+
+    def test_dashboard_rejects_invalid_port(self):
+        for port in ("0", "65536", "-1"):
+            with self.subTest(port=port):
+                with self.assertRaises(SystemExit):
+                    main(["dashboard", "--port", port])
+
 
 
 if __name__ == "__main__":

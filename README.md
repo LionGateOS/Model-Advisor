@@ -12,6 +12,8 @@ The goal is to reduce wasted time downloading, configuring, and testing models t
 
 ## Project Status
 
+Development continuity: [current project state](docs/PROJECT_STATE.md), [roadmap](docs/ROADMAP.md), and [accomplishment history](docs/ACCOMPLISHMENTS.md).
+
 Model Advisor is in early public development.
 
 The first implemented capability is a normalized hardware profile.
@@ -37,7 +39,7 @@ Current limitations:
 - runtime discovery currently covers Ollama, llama.cpp, and vLLM;
 - hardware/runtime compatibility currently depends on explicit positive capability evidence and may remain unknown when evidence is unavailable;
 - live model inventory discovery currently uses the local Ollama API; Hugging Face and GGUF normalization exist as metadata adapters but do not yet perform remote fetching or arbitrary file scanning;
-- model compatibility, hardware-fit estimation, and recommendation logic are not yet implemented;
+- conservative model qualification, hardware-fit foundations, and workload recommendation logic are implemented for the currently supported evidence paths; coverage is not universal;
 - benchmark execution and comparison are not yet implemented.
 
 Planned areas include:
@@ -138,6 +140,47 @@ Missing or failed capability probes do **not** automatically mean incompatible. 
 
 This compatibility layer evaluates detected hardware against runtime capability evidence. It does **not** yet determine whether a particular model will fit, perform well, or be recommended for the machine.
 
+## Qualification Capability Contract
+
+Model Advisor exposes the implemented qualification capability contract as
+JSON. It describes the statuses and execution paths supported by the
+qualification layer:
+
+- statuses: `qualified`, `candidate`, `not_qualified`, and `unknown`;
+- execution paths: `single_gpu`, `multi_gpu`, `none`, and `unknown`;
+- `conservative_unknown: true`, meaning missing evidence remains unknown.
+
+When given complete evidence, qualification reports `qualified` for a
+single-GPU fit, `candidate` when multi-GPU execution is the only supported
+path, and `not_qualified` when incompatibility or the absence of any usable GPU
+path is proven. If required runtime or fit evidence is missing, it reports
+`unknown` with the available reasons and evidence sources; it does not treat
+missing evidence as failure.
+
+### Qualification CLI
+
+Show the capability contract from the repository root:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor qualification
+
+This command reports the contract only. It does not perform live per-model
+recommendation or performance prediction.
+
+## Conservative Recommendation CLI
+
+Show conservative recommendations for locally stored Ollama artifacts:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor recommend
+
+Filter to one supported workload:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor recommend --workload coding
+
+Supported initial workloads are `coding`, `general_chat`, and `reasoning`.
+Recommendations require explicit sourced workload evidence and preserve unknown
+hardware or metadata states rather than guessing. The command does not download,
+install, launch, benchmark, or numerically rank models.
+
 ## Open the Local Dashboard
 
 Model Advisor includes a local read-only dashboard that presents the same verified hardware, runtime discovery, and compatibility information in a browser:
@@ -148,6 +191,14 @@ Then open:
 
     http://127.0.0.1:8765/
 
+If port 8765 is already in use, choose another local port:
+
+    PYTHONPATH=src python3 -m liongateos_model_advisor dashboard --port 8766
+
+Then open:
+
+    http://127.0.0.1:8766/
+
 The dashboard binds to the local loopback interface by default. It does not provide shell access, model installation, downloads, job dispatch, approval controls, or arbitrary filesystem access.
 
 For a custom llama.cpp installation:
@@ -156,7 +207,14 @@ For a custom llama.cpp installation:
 
 The dashboard shows compatibility conclusions alongside their reasons and evidence. The same conservative evidence rules apply as in the command-line compatibility output: missing evidence remains unknown rather than being treated as incompatibility.
 
-The dashboard presents implemented hardware, runtime, compatibility, and Ollama model-metadata capabilities. It clearly distinguishes locally stored artifacts from remote-backed registrations and exposes metadata provenance. Model-fit recommendations, quantization guidance, benchmark results, confidence scoring, and concurrency estimates are not yet implemented.
+The dashboard presents implemented hardware, runtime, compatibility, and Ollama model-metadata capabilities. It clearly distinguishes locally stored artifacts from remote-backed registrations and exposes metadata provenance. Its JSON data payload includes a `qualification_capabilities` object containing the same qualification contract exposed by the CLI: supported statuses, supported execution paths, and `conservative_unknown: true`.
+
+Qualification feeds the conservative recommendation layer for locally stored
+Ollama artifacts. Model Advisor now exposes per-model workload recommendations
+for coding, general chat, and reasoning through the dashboard and CLI. Missing
+or insufficient evidence remains unknown. Numerical performance prediction,
+benchmark-derived ranking, comprehensive quantization guidance, confidence
+scoring, and concurrency estimates are not claimed.
 
 ## Contributing
 

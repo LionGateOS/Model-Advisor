@@ -31,7 +31,16 @@
         Inspecting this machine…
       </div>
 
-      <section class="panel" aria-labelledby="machine-heading">
+      <nav class="dashboard-tabs" role="tablist" aria-label="Dashboard sections">
+        <button class="dashboard-tab" id="tab-overview" type="button" role="tab" aria-controls="panel-overview" aria-selected="true" tabindex="0">Overview</button>
+        <button class="dashboard-tab" id="tab-hardware" type="button" role="tab" aria-controls="panel-hardware" aria-selected="false" tabindex="-1">Hardware</button>
+        <button class="dashboard-tab" id="tab-runtimes" type="button" role="tab" aria-controls="panel-runtimes" aria-selected="false" tabindex="-1">Runtimes</button>
+        <button class="dashboard-tab" id="tab-models" type="button" role="tab" aria-controls="panel-models" aria-selected="false" tabindex="-1">Models</button>
+        <button class="dashboard-tab" id="tab-context" type="button" role="tab" aria-controls="panel-context" aria-selected="false" tabindex="-1">Context</button>
+        <button class="dashboard-tab" id="tab-ecosystem" type="button" role="tab" aria-controls="panel-ecosystem" aria-selected="false" tabindex="-1">Ecosystem</button>
+      </nav>
+
+      <section class="panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" >
         <div class="section-heading">
           <div>
             <p class="section-kicker">Machine</p>
@@ -41,7 +50,7 @@
         <div id="machine-summary" class="fact-grid"></div>
       </section>
 
-      <section class="panel" aria-labelledby="hardware-heading">
+      <section class="panel" id="panel-hardware" role="tabpanel" aria-labelledby="tab-hardware"  hidden>
         <div class="section-heading">
           <div>
             <p class="section-kicker">Hardware</p>
@@ -51,7 +60,7 @@
         <div id="gpu-list" class="card-grid"></div>
       </section>
 
-      <section class="panel" aria-labelledby="runtime-heading">
+      <section class="panel" id="panel-runtimes" role="tabpanel" aria-labelledby="tab-runtimes"  hidden>
         <div class="section-heading">
           <div>
             <p class="section-kicker">Runtimes</p>
@@ -64,7 +73,7 @@
         <div id="runtime-list" class="runtime-list"></div>
       </section>
 
-      <section class="panel" aria-labelledby="models-heading">
+      <section class="panel" id="panel-models" role="tabpanel" aria-labelledby="tab-models"  hidden>
         <div class="section-heading">
           <div>
             <p class="section-kicker">Models</p>
@@ -80,7 +89,20 @@
         <div id="model-list" class="model-grid"></div>
       </section>
 
-      <section class="panel" aria-labelledby="ecosystem-heading">
+      <section class="panel" id="panel-context" role="tabpanel" aria-labelledby="tab-context"  hidden>
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Context</p>
+            <h2 id="context-heading">Local model context comparison</h2>
+          </div>
+          <p class="section-note">
+            Context limits and memory fit are separate conclusions.
+          </p>
+        </div>
+        <div id="context-comparison"></div>
+      </section>
+
+      <section class="panel" id="panel-ecosystem" role="tabpanel" aria-labelledby="tab-ecosystem"  hidden>
         <div class="section-heading">
           <div>
             <p class="section-kicker">Ecosystem</p>
