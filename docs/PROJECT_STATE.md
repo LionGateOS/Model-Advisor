@@ -325,3 +325,46 @@ Next action:
   checkpoint; commit and push await explicit owner approval.
 - Next: owner-approved commit of the four reviewed files; no push without
   further approval.
+
+## 2026-10-30 — M09B identity-evidence foundation checkpoint
+
+- IMPLEMENTED / VERIFIED (automated): M09B identity-evidence foundation V1,
+  read-only, fail-closed, advisory only. Basis: branch
+  `m08-recommendation-layer` at `62ff999`, clean tree, 227 passing tests.
+- Files created: `src/liongateos_model_advisor/upstream_identity_binding.py`
+  and `tests/test_upstream_identity_binding.py` (52 synthetic-fixture
+  tests). File modified: `src/liongateos_model_advisor/ollama_manifest_identity.py`
+  (added `collect_manifest_layer_records`, plus manifest `from`-label claim
+  records; existing behavior unchanged). No other source file required a
+  change after inspection: `model_sources.py` and `model_discovery.py`
+  normalization stays as-is, because preserving claim *values* there would
+  require a public `ModelProfile`/`ModelIdentity` schema change; M09B
+  claims are therefore kept as structured claims in the dedicated module.
+- Evidence distinctions enforced by tests: verified local identity evidence
+  (recomputed manifest digests, M09A; local digest groups and manifest
+  layer records are local-only claims), claimed upstream identity (owner
+  mappings and GGUF header URLs propose candidates, never prove),
+  verified upstream file byte identity (unique provider-published
+  SHA-256 match over a locally computed blob hash plus size
+  consistency), unverified authorship/lineage (always declared unverified),
+  and workload suitability (always unknown; the regression test proves a
+  `bound` result still leaves recommendations `workload_unknown`).
+- Safeguards: full-blob hashing requires an explicit disclosed plan plus
+  exact size acknowledgement authorization and refuses mismatched or
+  missing authorization before reading any bytes; upstream network access
+  requires an explicit gate over explicitly supplied candidate
+  repositories with fixed caps (max 4 repos/request set, 2 MiB response,
+  512 records, 10 s timeout, redirects refused, loopback-safe empty
+  proxy). No CLI/dashboard wiring, background scanning, or implicit
+  network/hashing paths exist.
+- Verification in this session (workspace temp dir under the
+  workspace-write sandbox): focused M09B module — 52 tests, OK; full
+  suite `discover` — 279 tests, OK; zero assertion failures.
+- No WorkRunner code, proprietary routing, credentials, machine-specific
+  paths, or private evidence were introduced; results and reason strings
+  carry no local filesystem paths, and malformed or private-path claims
+  are recorded by deterministic reason code with values withheld.
+- The three M09B-touched files and these record updates are uncommitted
+  at this checkpoint; commit and push await explicit owner approval.
+- Next: owner-approved commit of the five changed files; no push without
+  further approval.

@@ -218,3 +218,42 @@ approval, installation, dispatch, or policy authority.
   no CLI or dashboard integration, and the trust root remains a declared
   local assumption rather than proof of what the registry received.
 - Uncommitted at this checkpoint; commit awaits explicit owner approval.
+
+## M09B identity-evidence foundation V1 — 2026-10-30
+
+- IMPLEMENTED / VERIFIED (automated): a bounded, fail-closed upstream
+  identity-evidence foundation, advisory only, with no recommendation
+  promotion and no public schema contract change.
+- New module `upstream_identity_binding.py` provides:
+  GGUF identity claim extraction (`general.basename`, `general.repo_url`,
+  `general.quantized_by`, `general.base_model.N.repo_url`; every value is an
+  unverified claim and malformed or private-path values are withheld),
+  bounded candidate proposals from owner mappings and GGUF header URLs only
+  (never discovered by filename similarity), local model-layer digest
+  groups (local byte-identity evidence only), explicitly gated local
+  full-blob SHA-256 hashing (disclosed plan plus exact authorization;
+  default behavior never hashes model files), explicitly gated upstream
+  evidence retrieval (bounded to candidate repositories with fixed caps on
+  request count, response size, timeout, and redirects), and a pure
+  binding validator returning `bound`, `unbound`, or `unknown`.
+- A manifest-layer record collector was added to
+  `ollama_manifest_identity.py` (one record per registration whose
+  manifest declares one verifiable model layer whose blob is present by
+  stat metadata; no blob is ever read or hashed there).
+- Binding accepts upstream byte identity only when the locally computed
+  blob SHA-256 equals a provider-published SHA-256 for an exact upstream
+  file, with a unique unambiguous match and consistent size where
+  available. Matching manifest-declared local digests are kept distinct
+  from recomputed blob hashes; a mismatch is reported, never forgiven.
+  Byte identity to a hosted file is not proof of authorship, safety,
+  licensing, lineage, or workload suitability.
+- Verification: full suite **279 tests, OK** (227 baseline + **52** new
+  synthetic-fixture M09B tests), zero failures; no live model blob, no
+  external network, no GPU used by any test.
+- LIMITATION: no live verification executed in this job; the provider
+  evidence path exists but has not been exercised against real Hugging
+  Face records; findings are not wired into CLI/dashboard output; the
+  trust root remains a declared assumption.
+- Uncommitted at this checkpoint; commit awaits explicit owner approval.
+- Model Advisor remains advisory only and gains no WorkRunner execution
+  authority.

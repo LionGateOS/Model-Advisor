@@ -5,11 +5,32 @@ from __future__ import annotations
 import json
 import os
 import re
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 _DIGEST = re.compile(r"^sha256:([0-9a-f]{64})$")
 _SAFE_COMPONENT = re.compile(r"^[A-Za-z0-9._-]+$")
 _MODEL_LAYER = "application/vnd.ollama.image.model"
+
+_MANIFEST_MAX_BYTES = 1024 * 1024
+
+
+@dataclass(frozen=True)
+class ManifestLayerRecord:
+    """One local manifest's identity claims, read-only.
+
+    ``model_layer_digest`` is the digest *declared* by the local manifest
+    file, not a recomputed blob hash. ``from_label`` is a pull/import label
+    claim supplied by the manifest itself; it is never proof of upstream
+    identity, and a malformed or private-path label is withheld entirely.
+    """
+
+    registry_identity: str
+    model_layer_digest: str
+    model_layer_size: int
+    from_label: str | None = None
+    from_label_well_formed: bool = True
 
 
 def _is_safe_component(part: str) -> bool:
@@ -146,3 +167,128 @@ def discover_registry_identity(
     if len(matches) != 1:
         return None
     return next(iter(matches))
+
+
+def _read_capped(manifest_path: Path) -> bytes:
+    """Read a manifest file with a strict size cap."""
+
+    if not manifest_path.is_file():
+        raise OSError("not a file")
+
+    with manifest_path.open("rb") as handle:
+        data = handle.read(_MANIFEST_MAX_BYTES + 1)
+
+    if len(data) > _MANIFEST_MAX_BYTES:
+        raise OSError("manifest exceeds size cap")
+    return data
+
+
+def collect_manifest_layer_records(
+    models_root: Path,
+    *,
+    manifest_reader: Callable[[Path], bytes] | None = None,
+) -> tuple[ManifestLayerRecord, ...]:
+    """Collect per-registration manifest layer records, read-only.
+
+    One record per local registration whose manifest declares a single
+    model layer of the model media type whose blob exists locally with the
+    declared size (stat metadata only; model blobs are never read or
+    hashed here). The manifest-level ``from`` label, when present, is
+    preserved as a claim: well-formed labels are kept, malformed or
+    private-path labels are withheld. Unreadable, oversized, or malformed
+    manifests are skipped, never guessed.
+    """
+
+    reader = manifest_reader or _read_capped
+    manifest_root = models_root / "manifests"
+    if not manifest_root.is_dir():
+        return ()
+
+    records: dict[str, ManifestLayerRecord] = {}
+    try:
+        candidates = sorted(manifest_root.rglob("*"))
+    except OSError:
+        return ()
+
+    for candidate in candidates:
+        if not candidate.is_file():
+            continue
+
+        try:
+            relative_parts = candidate.relative_to(manifest_root).parts
+        except ValueError:
+            continue
+
+        if any(not _is_safe_component(part) for part in relative_parts):
+            continue
+
+        identity = "/".join(relative_parts)
+
+        try:
+            data = reader(candidate)
+        except (OSError, ValueError):
+            continue
+        if not isinstance(data, bytes):
+            continue
+
+        try:
+            manifest = json.loads(data.decode("utf-8"))
+        except (UnicodeError, ValueError):
+            continue
+        if not isinstance(manifest, dict):
+            continue
+
+        layers = manifest.get("layers")
+        if not isinstance(layers, list):
+            continue
+        model_layers = [
+            layer
+            for layer in layers
+            if isinstance(layer, dict)
+            and layer.get("mediaType") == _MODEL_LAYER
+        ]
+        if len(model_layers) != 1:
+            continue
+
+        digest = model_layers[0].get("digest")
+        size = model_layers[0].get("size")
+        match = _DIGEST.fullmatch(digest) if isinstance(digest, str) else None
+        if (
+            match is None
+            or isinstance(size, bool)
+            or not isinstance(size, int)
+            or size < 0
+            or not _model_layer_is_present(models_root, manifest)
+        ):
+            continue
+
+        from_label: str | None = None
+        from_label_well_formed = True
+        raw_from = manifest.get("from")
+        if raw_from is not None:
+            if (
+                isinstance(raw_from, str)
+                and raw_from.strip()
+                and "\\" not in raw_from
+                and not raw_from.strip().startswith(("/", "."))
+                and all(
+                    _is_safe_component(part)
+                    for part in raw_from.strip().split("/")
+                )
+            ):
+                from_label = raw_from.strip()
+                from_label_well_formed = True
+            else:
+                from_label_well_formed = False
+
+        records[identity] = ManifestLayerRecord(
+            registry_identity=identity,
+            model_layer_digest=match.group(0),
+            model_layer_size=size,
+            from_label=from_label,
+            from_label_well_formed=from_label_well_formed,
+        )
+
+    return tuple(
+        sorted(records.values(), key=lambda record: record.registry_identity)
+    )
