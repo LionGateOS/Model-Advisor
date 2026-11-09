@@ -167,3 +167,22 @@ what replaced it rather than deleting the earlier accomplishment.
   normal terminal, JavaScript syntax passed, and Git diff checks passed.
   Status: **AUTOMATED TESTS VERIFIED**; browser visual review remains
   pending. No complete-fit or recommendation claim.
+
+## 2026-11-09 — M10A evidence confidence delivered
+
+- Implemented evidence-confidence classification in
+  `src/liongateos_model_advisor/recommendation.py`.
+- Exposed the field in the existing dashboard presentation and
+  recommendation CLI JSON.
+- Added regression coverage in `tests/test_recommendation.py`,
+  `tests/test_dashboard_recommendations.py`, and `tests/test_cli.py`.
+- Final regression: **280 tests passed**; Git whitespace check passed.
+- Implementation commit:
+  `77d60235cad2b815b62ae172004cb73da7038747`.
+- Remote feature-branch push verified; no merge.
+- Verified SHA-256 and archive readability for external backup
+  `model-advisor-m10a-precommit-20261109-020307.tgz`.
+- Limitation: confidence is derived from existing recommendation
+  classifications, not independent performance benchmarks.
+- Next safe action: review this documentation-only closeout and
+  preserve it before starting M10B.

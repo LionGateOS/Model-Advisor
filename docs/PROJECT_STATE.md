@@ -368,3 +368,25 @@ Next action:
   at this checkpoint; commit and push await explicit owner approval.
 - Next: owner-approved commit of the five changed files; no push without
   further approval.
+
+## 2026-11-09 — M10A evidence-confidence closeout
+
+- Status: **COMPLETE / VERIFIED** at the bounded classification scope.
+- Commit: `77d60235cad2b815b62ae172004cb73da7038747`.
+- Branch: `m08-recommendation-layer`; commit pushed to `origin`.
+- Added `high`, `limited`, and `unknown` evidence-confidence values
+  to existing conservative model recommendations.
+- Dashboard displays confidence; CLI JSON preserves the field.
+- Confidence derives from recommendation status and existing qualification
+  evidence. It is not independently benchmarked model performance,
+  statistical confidence, or a new qualification guarantee.
+- Existing recommendation eligibility and advisory-only authority remain
+  unchanged.
+- Verification: **280 Python tests passed**; Git whitespace check passed.
+- Verified pre-commit archive:
+  `model-advisor-m10a-precommit-20261109-020307.tgz`
+  under the external `MASTER_BACKUPS` destination.
+- Working tree clean following the implementation commit; remote push
+  succeeded. No merge performed.
+- Next: closeout documentation review, then bounded M10B workload
+  taxonomy discovery before any implementation.

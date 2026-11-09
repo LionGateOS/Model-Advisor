@@ -257,3 +257,22 @@ approval, installation, dispatch, or policy authority.
 - Uncommitted at this checkpoint; commit awaits explicit owner approval.
 - Model Advisor remains advisory only and gains no WorkRunner execution
   authority.
+
+## M10A — Evidence confidence — 2026-11-09
+
+**COMPLETE / VERIFIED:** Commit `77d6023`, pushed on
+`m08-recommendation-layer`; 280 Python tests passed and pre-commit
+backup verified.
+
+Conservative recommendation results now expose `high`, `limited`, or
+`unknown` evidence confidence through the recommendation contract,
+CLI JSON, and dashboard.
+
+**LIMITATION:** These labels are derived from existing classification
+statuses. They do not establish independent benchmark evidence,
+probabilistic confidence, or model performance rankings.
+
+**NEXT — M10B (PLANNED):** Review and expand the intentionally narrow
+workload taxonomy using explicit sourced task metadata. Preserve
+unknown classifications and existing hardware qualification safeguards.
+No M10B implementation is authorized by this record.
