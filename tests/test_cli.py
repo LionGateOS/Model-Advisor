@@ -315,6 +315,7 @@ class CLITests(unittest.TestCase):
                     "artifact_id": "artifact-1",
                     "workload": "coding",
                     "status": "workload_unknown",
+                    "evidence_confidence": "unknown",
                     "reasons": ["No sufficiently sourced workload match"],
                     "evidence_sources": [],
                 },
@@ -323,6 +324,7 @@ class CLITests(unittest.TestCase):
                     "artifact_id": "artifact-1",
                     "workload": "reasoning",
                     "status": "needs_hardware_verification",
+                    "evidence_confidence": "limited",
                     "reasons": [
                         "Workload metadata matches but hardware qualification is incomplete"
                     ],
@@ -340,6 +342,10 @@ class CLITests(unittest.TestCase):
         self.assertTrue(data["conservative"])
         self.assertFalse(data["performance_ranking"])
         self.assertEqual(len(data["recommendations"]), 2)
+        self.assertEqual(
+            [item["evidence_confidence"] for item in data["recommendations"]],
+            ["unknown", "limited"],
+        )
         collect.assert_called_once_with([])
 
     @patch("liongateos_model_advisor.cli.collect_dashboard_data")

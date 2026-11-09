@@ -16,6 +16,12 @@ RecommendationStatus = Literal[
     "not_recommended",
 ]
 
+EvidenceConfidence = Literal[
+    "high",
+    "limited",
+    "unknown",
+]
+
 _WORKLOAD_TASKS = {
     "coding": frozenset({"code-generation", "text-to-code"}),
     "general_chat": frozenset({"conversational"}),
@@ -29,6 +35,7 @@ class ModelRecommendation:
     artifact_id: str
     workload: str
     status: RecommendationStatus
+    evidence_confidence: EvidenceConfidence
     reasons: tuple[str, ...]
     evidence_sources: tuple[str, ...]
 
@@ -96,11 +103,19 @@ def recommend_local_model(
 
         evidence.extend(workload_evidence)
 
+    if status == "supported_candidate":
+        evidence_confidence: EvidenceConfidence = "high"
+    elif status == "needs_hardware_verification":
+        evidence_confidence = "limited"
+    else:
+        evidence_confidence = "unknown"
+
     return ModelRecommendation(
         model_id=model.model_id,
         artifact_id=artifact.artifact_id,
         workload=workload,
         status=status,
+        evidence_confidence=evidence_confidence,
         reasons=tuple(reasons),
         evidence_sources=tuple(dict.fromkeys(evidence)),
     )

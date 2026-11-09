@@ -58,11 +58,13 @@ class RecommendationTests(unittest.TestCase):
     def test_positive_workload_and_qualification(self):
         result = self.classify()
         self.assertEqual(result.status, "supported_candidate")
+        self.assertEqual(result.evidence_confidence, "high")
         self.assertIn("test:reported-tasks", result.evidence_sources)
 
     def test_unknown_hardware(self):
         result = self.classify(qualification_status="unknown")
         self.assertEqual(result.status, "needs_hardware_verification")
+        self.assertEqual(result.evidence_confidence, "limited")
 
     def test_candidate_hardware(self):
         result = self.classify(qualification_status="candidate")
@@ -71,10 +73,12 @@ class RecommendationTests(unittest.TestCase):
     def test_not_qualified(self):
         result = self.classify(qualification_status="not_qualified")
         self.assertEqual(result.status, "not_recommended")
+        self.assertEqual(result.evidence_confidence, "unknown")
 
     def test_missing_workload_metadata(self):
         result = self.classify(tasks=())
         self.assertEqual(result.status, "workload_unknown")
+        self.assertEqual(result.evidence_confidence, "unknown")
 
     def test_unverified_workload_metadata(self):
         result = self.classify(evidence=False)

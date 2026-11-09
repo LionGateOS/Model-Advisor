@@ -106,6 +106,8 @@ class DashboardRecommendationTests(unittest.TestCase):
         self.assertIn("Workload recommendations", script)
         self.assertIn("workload_recommendations", script)
         self.assertIn("Hardware verification needed", script)
+        self.assertIn("Evidence confidence", script)
+        self.assertIn("confidenceLabels.unknown", script)
 
 
 if __name__ == "__main__":

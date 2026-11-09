@@ -534,6 +534,20 @@ function renderModels(
           );
           recommendationPanel.append(row);
 
+          const confidenceLabels = {
+            high: "High — existing qualification evidence",
+            limited: "Limited — hardware verification incomplete",
+            unknown: "Unknown — insufficient evidence",
+          };
+          const confidenceRow = element("div", "model-meta");
+          addMeta(
+            confidenceRow,
+            "Evidence confidence",
+            confidenceLabels[item.evidence_confidence] ||
+              confidenceLabels.unknown,
+          );
+          recommendationPanel.append(confidenceRow);
+
           if (Array.isArray(item.reasons) && item.reasons.length) {
             const explanation = element(
               "p",
