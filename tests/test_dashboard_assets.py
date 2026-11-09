@@ -32,6 +32,22 @@ class DashboardAssetTests(unittest.TestCase):
 
 
 
+    def test_ecosystem_catalog_controls(self):
+        from importlib.resources import files
+        web = files("liongateos_model_advisor").joinpath("web")
+        html = web.joinpath("index.html").read_text()
+        script = web.joinpath("dashboard.js").read_text()
+        css = web.joinpath("dashboard.css").read_text()
+        for name in ("search", "source", "sort"):
+            self.assertIn(f'id="ecosystem-{name}"', html)
+        self.assertIn('id="ecosystem-visible-count"', html)
+        self.assertIn('entries.sort(', script)
+        self.assertIn('entries.forEach((entry)', script)
+        self.assertIn('if (entry.source === "huggingface")', script)
+        self.assertNotIn('entries.filter((entry) => entry.source', script)
+        self.assertNotIn('.slice(0, 6)', script)
+        self.assertIn('.ecosystem-controls', css)
+
     def test_dashboard_has_accessible_section_tabs(self):
         from importlib.resources import files
         html = files("liongateos_model_advisor").joinpath(

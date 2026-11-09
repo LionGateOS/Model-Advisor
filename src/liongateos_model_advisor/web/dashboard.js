@@ -10,6 +10,11 @@ const modelSummaryNode = document.querySelector("#model-summary");
 const contextNode = document.querySelector("#context-comparison");
 const ecosystemNode = document.querySelector("#ecosystem-list");
 const ecosystemSummaryNode = document.querySelector("#ecosystem-summary");
+const ecosystemSearch = document.querySelector("#ecosystem-search");
+const ecosystemSource = document.querySelector("#ecosystem-source");
+const ecosystemSort = document.querySelector("#ecosystem-sort");
+const ecosystemVisibleCount = document.querySelector("#ecosystem-visible-count");
+let ecosystemProfiles = [{}, {}];
 
 function known(value, fallback = "Unknown") {
   if (value === null || value === undefined || value === "") {
@@ -763,6 +768,7 @@ function renderContextComparisons(comparisons, modelsProfile) {
 }
 
 function renderEcosystem(huggingfaceProfile, openrouterProfile) {
+  ecosystemProfiles = [huggingfaceProfile, openrouterProfile];
   ecosystemNode.replaceChildren();
 
   const hfModels = Array.isArray(huggingfaceProfile.models)
@@ -774,7 +780,54 @@ function renderEcosystem(huggingfaceProfile, openrouterProfile) {
     `${hfModels.length} Hugging Face models · `
     + `${offerings.length} OpenRouter offerings`;
 
-  hfModels.slice(0, 6).forEach((model) => {
+  const query = ecosystemSearch.value.trim().toLocaleLowerCase();
+  const source = ecosystemSource.value;
+  const sort = ecosystemSort.value;
+
+  const entries = [
+    ...hfModels.map((item) => ({
+      item, source: "huggingface",
+      name: String(item.display_name || item.model_id || "Unknown"),
+      id: String(item.model_id || ""),
+      parameters: item.parameter_count,
+      context: item.context_length,
+    })),
+    ...offerings.map((item) => ({
+      item, source: "openrouter",
+      name: String(item.provider_model_id || "Unknown"),
+      id: String(item.model_id || ""),
+      parameters: null,
+      context: item.context_length,
+    })),
+  ].filter((entry) =>
+    (source === "all" || entry.source === source)
+    && (entry.name.toLocaleLowerCase().includes(query)
+      || entry.id.toLocaleLowerCase().includes(query))
+  );
+
+  entries.sort((a, b) => {
+    if (sort !== "name") {
+      const left = a[sort];
+      const right = b[sort];
+      const valid = (value) =>
+        typeof value === "number" && Number.isFinite(value) && value >= 0;
+      if (valid(left) !== valid(right)) return valid(left) ? -1 : 1;
+      if (valid(left) && left !== right) return right - left;
+    }
+    return a.name.localeCompare(b.name) || a.source.localeCompare(b.source);
+  });
+
+  ecosystemVisibleCount.textContent =
+    `${entries.length} of ${hfModels.length + offerings.length} entries shown`;
+
+  if (!entries.length) {
+    ecosystemNode.append(element("div", "empty-state",
+      "No models match the current search and source filter."));
+  }
+
+  entries.forEach((entry) => {
+    if (entry.source === "huggingface") {
+      const model = entry.item;
     const card = element("article", "model-card");
     card.append(
       element("h3", "model-name", known(model.display_name, model.model_id)),
@@ -788,9 +841,8 @@ function renderEcosystem(huggingfaceProfile, openrouterProfile) {
     addMeta(meta, "Architecture", model.architecture || "Not reported by source");
     card.append(meta);
     ecosystemNode.append(card);
-  });
-
-  offerings.slice(0, 6).forEach((offering) => {
+    } else {
+      const offering = entry.item;
     const card = element("article", "model-card");
     card.append(
       element("h3", "model-name", offering.provider_model_id),
@@ -802,9 +854,17 @@ function renderEcosystem(huggingfaceProfile, openrouterProfile) {
     addMeta(meta, "Linked model", offering.model_id || "No verified model link");
     card.append(meta);
     ecosystemNode.append(card);
+    }
   });
 }
 
+
+[ecosystemSearch, ecosystemSource, ecosystemSort].forEach((control) => {
+  control.addEventListener(
+    control === ecosystemSearch ? "input" : "change",
+    () => renderEcosystem(...ecosystemProfiles),
+  );
+});
 
 const dashboardTabs = Array.from(
   document.querySelectorAll(".dashboard-tab")

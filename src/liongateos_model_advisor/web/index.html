@@ -110,6 +110,26 @@
           </div>
           <p id="ecosystem-summary" class="model-summary"></p>
         </div>
+        <div class="ecosystem-controls">
+          <label for="ecosystem-search">Search models
+            <input id="ecosystem-search" type="search" placeholder="Model name or ID">
+          </label>
+          <label for="ecosystem-source">Source
+            <select id="ecosystem-source">
+              <option value="all">All sources</option>
+              <option value="huggingface">Hugging Face</option>
+              <option value="openrouter">OpenRouter</option>
+            </select>
+          </label>
+          <label for="ecosystem-sort">Sort by
+            <select id="ecosystem-sort">
+              <option value="name">Name</option>
+              <option value="parameters">Parameters</option>
+              <option value="context">Context length</option>
+            </select>
+          </label>
+        </div>
+        <p id="ecosystem-visible-count" class="model-summary" role="status"></p>
         <div id="ecosystem-list" class="model-grid"></div>
       </section>
     </main>
