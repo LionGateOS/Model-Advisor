@@ -295,3 +295,17 @@ No M10B implementation is authorized by this record.
   supplies advisory evidence only, not routing or execution.
 - Next: review and preserve the bounded milestone before any
   broader workload or benchmark work.
+
+## M10B Phase 2 — Evidence feasibility — 2026-11-10
+
+**DISCOVERY COMPLETE / IMPLEMENTATION DEFERRED.**
+
+- M10B Phase 1 embeddings support is published at `05c45aaba01f`.
+- Summarization, translation, and text classification lack a verified
+  local artifact-bound task-evidence path in this discovery.
+- Hugging Face task labels must not automatically qualify a local
+  Ollama model by name or similarity.
+- Next implementation requires a reviewed, evidence-conservative
+  identity and task-provenance path; no implementation authorized.
+- Benchmarking, ranking and DeepSeek Harness execution integration
+  remain separate and unapproved.

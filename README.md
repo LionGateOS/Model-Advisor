@@ -176,7 +176,7 @@ Filter to one supported workload:
 
     PYTHONPATH=src python3 -m liongateos_model_advisor recommend --workload coding
 
-Supported initial workloads are `coding`, `general_chat`, and `reasoning`.
+Supported workloads are `coding`, `general_chat`, `reasoning`, and `embeddings`.
 Recommendations require explicit sourced workload evidence and preserve unknown
 hardware or metadata states rather than guessing. The command does not download,
 install, launch, benchmark, or numerically rank models.
@@ -211,10 +211,9 @@ The dashboard presents implemented hardware, runtime, compatibility, and Ollama 
 
 Qualification feeds the conservative recommendation layer for locally stored
 Ollama artifacts. Model Advisor now exposes per-model workload recommendations
-for coding, general chat, and reasoning through the dashboard and CLI. Missing
+for coding, general chat, reasoning, and embeddings through the dashboard and CLI. Missing
 or insufficient evidence remains unknown. Numerical performance prediction,
-benchmark-derived ranking, comprehensive quantization guidance, confidence
-scoring, and concurrency estimates are not claimed.
+benchmark-derived ranking, comprehensive quantization guidance, independently measured confidence, and concurrency estimates are not claimed.
 
 ## Contributing
 
