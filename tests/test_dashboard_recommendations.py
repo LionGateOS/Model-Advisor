@@ -77,7 +77,7 @@ class DashboardRecommendationTests(unittest.TestCase):
         results = data["workload_recommendations"]
         self.assertEqual(
             [item["workload"] for item in results],
-            ["coding", "general_chat", "reasoning"],
+            ["coding", "general_chat", "reasoning", "embeddings"],
         )
 
     def test_unknown_hardware_never_supported(self):

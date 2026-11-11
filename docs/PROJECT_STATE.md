@@ -390,3 +390,25 @@ Next action:
   succeeded. No merge performed.
 - Next: closeout documentation review, then bounded M10B workload
   taxonomy discovery before any implementation.
+
+## 2026-11-10 — M10B Phase 1 embeddings verification
+
+- Status: IMPLEMENTED / REGRESSION-VERIFIED / UNCOMMITTED.
+- Added `embeddings` to the existing conservative workload taxonomy,
+  CLI selection, dashboard results, and frontend labels.
+- Positive workload classification requires explicitly reported
+  `embedding` capability evidence and the existing local-artifact
+  and hardware-qualification safeguards.
+- `embedding_length` alone does not establish workload suitability.
+  Missing evidence remains unknown; insufficient hardware evidence
+  cannot yield a supported candidate.
+- Verification: 285 Python tests passed, JavaScript syntax passed,
+  and Git diff validation passed.
+- Verified pre-closeout backup:
+  `model-advisor-m10b-precloseout-20261110-194035.tgz`.
+- Live embedding-model evaluation and performance/quality benchmarks
+  remain unverified. No model execution or benchmark authority added.
+- Cross-project DSH interim handoff received; no integration,
+  provider-routing authority, or execution authority authorized.
+- Next safe action: review the documentation diff and verification
+  evidence, then obtain separate approval for an exact-file commit.

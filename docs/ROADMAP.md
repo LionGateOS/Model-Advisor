@@ -276,3 +276,22 @@ probabilistic confidence, or model performance rankings.
 workload taxonomy using explicit sourced task metadata. Preserve
 unknown classifications and existing hardware qualification safeguards.
 No M10B implementation is authorized by this record.
+
+## M10B Phase 1 — Embeddings — 2026-11-10
+
+**IMPLEMENTED / REGRESSION-VERIFIED / UNCOMMITTED.**
+
+- Extended conservative workload classification with `embeddings`.
+- Requires field-matched reported capability evidence.
+- Preserves unknown, hardware qualification, local-artifact,
+  and advisory-only safeguards.
+- Verification: 285 Python tests passed; JavaScript syntax and
+  Git diff checks passed; pre-closeout backup verified.
+- Scope excludes live model validation, embedding quality ranking,
+  benchmark execution, and additional workload categories.
+- Summarization, translation, classification, and other taxonomy
+  extensions remain deferred pending adequate evidence.
+- DeepSeek Harness integration remains unauthorized. Model Advisor
+  supplies advisory evidence only, not routing or execution.
+- Next: review and preserve the bounded milestone before any
+  broader workload or benchmark work.

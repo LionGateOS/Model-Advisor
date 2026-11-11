@@ -186,3 +186,26 @@ what replaced it rather than deleting the earlier accomplishment.
   classifications, not independent performance benchmarks.
 - Next safe action: review this documentation-only closeout and
   preserve it before starting M10B.
+
+## 2026-11-10 — M10B Phase 1 embeddings implementation
+
+- Added embeddings workload support across existing recommendation,
+  CLI, dashboard, and frontend surfaces.
+- Added five targeted recommendation regressions and updated the
+  dashboard workload expectation.
+- Full regression: 285 tests passed; JavaScript syntax and Git
+  whitespace validation passed.
+- Explicit reported capability evidence is required. Embedding
+  dimension is not accepted as proof of task capability.
+- Qualification safeguards, unknown classifications, and
+  advisory-only authority remain unchanged.
+- Verified pre-closeout archive and SHA-256:
+  `model-advisor-m10b-precloseout-20261110-194035.tgz`.
+- At this checkpoint, six implementation/test files remained
+  uncommitted. Documentation closeout is pending review.
+- DeepSeek Harness interim handoff was received and classified
+  as cross-project reference evidence. Its runtime preservation
+  and Agent Teams acceptance remain DSH-owned and do not
+  authorize Model Advisor integration.
+- No live embedding-model execution, benchmark, commit, push,
+  merge, or cross-project runtime modification performed.

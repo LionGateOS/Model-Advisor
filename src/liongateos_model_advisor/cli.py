@@ -76,7 +76,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     parser.add_argument(
         "--workload",
-        choices=("coding", "general_chat", "reasoning"),
+        choices=("coding", "general_chat", "reasoning", "embeddings"),
         help="with recommend, return only the selected workload",
     )
 

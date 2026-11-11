@@ -169,6 +169,117 @@ class RecommendationTests(unittest.TestCase):
         )
         self.assertEqual(result.status, "workload_unknown")
 
+
+    def test_reported_embedding_capability(self):
+        model, artifact, qualification = self.make_inputs(
+            tasks=(), evidence=False
+        )
+        model = ModelIdentity(
+            model_id=model.model_id,
+            capabilities=("embedding",),
+            evidence=(
+                MetadataEvidence(
+                    field="capabilities",
+                    source="test:reported-embedding",
+                    kind="reported",
+                ),
+            ),
+        )
+        result = recommend_local_model(
+            model=model,
+            artifact=artifact,
+            qualification=qualification,
+            workload="embeddings",
+        )
+        self.assertEqual(result.status, "supported_candidate")
+        self.assertEqual(result.evidence_confidence, "high")
+        self.assertIn(
+            "test:reported-embedding", result.evidence_sources
+        )
+
+    def test_embedding_without_evidence_is_unknown(self):
+        model, artifact, qualification = self.make_inputs(
+            tasks=(), evidence=False
+        )
+        model = ModelIdentity(
+            model_id=model.model_id,
+            capabilities=("embedding",),
+        )
+        result = recommend_local_model(
+            model=model,
+            artifact=artifact,
+            qualification=qualification,
+            workload="embeddings",
+        )
+        self.assertEqual(result.status, "workload_unknown")
+
+    def test_embedding_length_does_not_prove_workload(self):
+        model, artifact, qualification = self.make_inputs(
+            tasks=(), evidence=False
+        )
+        model = ModelIdentity(
+            model_id=model.model_id,
+            embedding_length=4096,
+        )
+        result = recommend_local_model(
+            model=model,
+            artifact=artifact,
+            qualification=qualification,
+            workload="embeddings",
+        )
+        self.assertEqual(result.status, "workload_unknown")
+
+    def test_embedding_requires_hardware_verification(self):
+        model, artifact, qualification = self.make_inputs(
+            tasks=(), evidence=False,
+            qualification_status="unknown",
+        )
+        model = ModelIdentity(
+            model_id=model.model_id,
+            capabilities=("embedding",),
+            evidence=(
+                MetadataEvidence(
+                    field="capabilities",
+                    source="test:reported-embedding",
+                    kind="reported",
+                ),
+            ),
+        )
+        result = recommend_local_model(
+            model=model,
+            artifact=artifact,
+            qualification=qualification,
+            workload="embeddings",
+        )
+        self.assertEqual(
+            result.status, "needs_hardware_verification"
+        )
+        self.assertEqual(result.evidence_confidence, "limited")
+
+    def test_embedding_not_qualified_is_not_recommended(self):
+        model, artifact, qualification = self.make_inputs(
+            tasks=(), evidence=False,
+            qualification_status="not_qualified",
+        )
+        model = ModelIdentity(
+            model_id=model.model_id,
+            capabilities=("embedding",),
+            evidence=(
+                MetadataEvidence(
+                    field="capabilities",
+                    source="test:reported-embedding",
+                    kind="reported",
+                ),
+            ),
+        )
+        result = recommend_local_model(
+            model=model,
+            artifact=artifact,
+            qualification=qualification,
+            workload="embeddings",
+        )
+        self.assertEqual(result.status, "not_recommended")
+
     def test_remote_artifact_rejected(self):
         model, artifact, qualification = self.make_inputs(location="remote")
         with self.assertRaises(ValueError):

@@ -517,6 +517,7 @@ function renderModels(
           coding: "Coding",
           general_chat: "General chat",
           reasoning: "Reasoning",
+          embeddings: "Embeddings",
         };
         const recommendationLabels = {
           supported_candidate: "Supported candidate",

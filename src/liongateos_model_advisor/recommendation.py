@@ -26,6 +26,7 @@ _WORKLOAD_TASKS = {
     "coding": frozenset({"code-generation", "text-to-code"}),
     "general_chat": frozenset({"conversational"}),
     "reasoning": frozenset({"reasoning"}),
+    "embeddings": frozenset({"embedding"}),
 }
 
 

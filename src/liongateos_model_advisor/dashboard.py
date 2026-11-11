@@ -126,7 +126,7 @@ def collect_dashboard_data(
             evidence_sources=tuple(evidence_sources),
         )
 
-        for workload in ("coding", "general_chat", "reasoning"):
+        for workload in ("coding", "general_chat", "reasoning", "embeddings"):
             recommendation = recommend_local_model(
                 model=model,
                 artifact=artifact,
