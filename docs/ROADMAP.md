@@ -309,3 +309,116 @@ No M10B implementation is authorized by this record.
   identity and task-provenance path; no implementation authorized.
 - Benchmarking, ranking and DeepSeek Harness execution integration
   remain separate and unapproved.
+
+## M10B Phase 2C — Artifact-bound task-evidence design — 2026-11-11
+
+**STATUS: DESIGN PROPOSED / NOT IMPLEMENTED.**
+
+### Objective
+
+Associate provider-reported task metadata with an exactly identified
+local artifact without confusing file identity, model lineage, task
+claims, task performance, or hardware qualification.
+
+### Reuse and authority boundaries
+
+- Reuse M09A local manifest evidence and M09B upstream binding.
+- Reuse existing ModelIdentity, ModelArtifact, MetadataEvidence,
+  ModelQualification, and conservative recommendation contracts.
+- Do not create a competing identity verifier or recommendation policy.
+- No implicit model hashing, network retrieval, execution, downloads,
+  GPU allocation, DSH routing, or WorkRunner delegation.
+- Existing M09B hashing and network authorization gates remain intact.
+- Phase 2C changes no recommendation eligibility.
+
+### Proposed artifact-task association input
+
+An eventual pure validator must receive:
+
+1. Exact local model_id and artifact_id.
+2. Exact local registry identity and verified binding provenance.
+3. M09B binding status and matching upstream repo/file identity.
+4. A provider-reported immutable repository revision identifier.
+5. Provider task metadata obtained for that same revision.
+6. Exact task field, reported value, and source provenance.
+7. Explicit task applicability scope for the matched file.
+8. Explicit evidence of ambiguity, inconsistency, or missing fields.
+
+A model name, tag, architecture, URL, base-model relationship, or
+owner assertion cannot independently establish a verified binding.
+
+### Revision and applicability requirements
+
+- Floating main/master references do not provide a stable revision.
+- The file digest and task record must refer to a consistent,
+  immutable upstream revision.
+- Repository-level task metadata must not be assumed to apply to
+  every file in a repository containing multiple models or variants.
+- Quantized derivatives must not inherit base-model task assertions
+  merely through lineage claims.
+- Conflicting or ambiguous file/task mappings fail closed.
+- Provider task metadata is a reported claim, not measured performance.
+
+### Proposed result contract
+
+Status: associated | unknown | rejected
+
+- associated: exact artifact binding and revision-consistent,
+  artifact-applicable reported task metadata are established.
+- unknown: evidence is absent, incomplete, stale, revision-unbound,
+  or otherwise insufficient.
+- rejected: contradictory, malformed, or definitively mismatched
+  evidence prevents association.
+
+The result must preserve deterministic privacy-safe reason codes,
+the task assertion's reported provenance, the binding evidence
+category, and explicit nonverification of performance.
+
+An associated result is NOT a supported_candidate recommendation.
+It must not independently alter ModelIdentity.tasks or
+ModelIdentity.capabilities.
+
+### Synthetic test requirements
+
+All tests must use fixture records, with no model file reads,
+network calls, model inference, or GPU allocation.
+
+Positive cases:
+- Unique exact-file binding and revision-consistent task metadata.
+- Explicit artifact-scoped task reporting with preserved provenance.
+
+Fail-closed cases:
+- Missing local digest or upstream provider digest.
+- Wrong digest or incompatible file size.
+- Multiple matching upstream files or conflicting provider records.
+- Floating or mismatched upstream revisions.
+- Missing, contradictory, or unscoped repository task metadata.
+- Incorrect owner mapping or forged GGUF identity claim.
+- Base-model task attribution to an unverified derivative.
+- Incorrect local model_id, artifact_id, or registry identity.
+- Malformed/private-path evidence and unsafe output values.
+- Attempted promotion of unknown recommendation to supported_candidate.
+- Attempted bypass of existing network and blob-hashing gates.
+
+Regression requirements:
+- Current four workload classifications remain unchanged.
+- Existing hardware qualification and remote-artifact exclusions hold.
+- Existing M09A/M09B tests continue passing.
+- No public ModelProfile schema change without separate review.
+- No automatic recommendation promotion or numerical ranking.
+
+### Implementation decision gate
+
+Before source changes, review the minimum pure contract, identify
+the exact existing extension seam, confirm revision and
+artifact-applicability semantics, and approve a bounded
+synthetic-fixture implementation.
+
+Until that gate is satisfied, additional workloads remain deferred.
+
+### Current boundaries
+
+This checkpoint authorizes design documentation only.
+No live upstream binding, model hashing, network retrieval,
+task-evidence enrichment, benchmark, integration, or deployment
+is authorized.
