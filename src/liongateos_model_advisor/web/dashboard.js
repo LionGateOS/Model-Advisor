@@ -319,6 +319,90 @@ function evidenceRecords(model, artifact) {
   return details;
 }
 
+
+function renderRecommendationOverview(profile, recommendations) {
+  const host = document.querySelector("#recommendation-overview");
+  if (!host) return;
+  host.replaceChildren();
+
+  host.append(element("h3", "", "Model comparison"));
+  host.append(element("p", "",
+    "Evidence-based suitability, not a performance ranking. Unknown means unverified."));
+
+  const models = Array.isArray(profile.models) ? profile.models : [];
+  const artifacts = Array.isArray(profile.artifacts) ? profile.artifacts : [];
+  const localIds = new Set(
+    artifacts.filter(item => item.location === "local").map(item => item.model_id)
+  );
+  const localModels = models.filter(model => localIds.has(model.model_id));
+  const records = Array.isArray(recommendations) ? recommendations : [];
+
+  if (!localModels.length) {
+    host.append(element("p", "", "No locally stored Ollama models available for comparison."));
+    return;
+  }
+
+  const statuses = {
+    supported_candidate: "Supported candidate",
+    needs_hardware_verification: "Hardware verification needed",
+    workload_unknown: "Suitability unknown",
+    not_recommended: "Not recommended under current evidence"
+  };
+  const workloads = [
+    ["coding", "Coding"],
+    ["general_chat", "General chat"],
+    ["reasoning", "Reasoning"],
+    ["embeddings", "Embeddings"]
+  ];
+  const table = element("table", "recommendation-table");
+  const caption = element("caption", "visually-hidden", "Local model workload comparison");
+  const thead = element("thead");
+  const headings = element("tr");
+  ["Model", ...workloads.map(item => item[1])].forEach(label => {
+    headings.append(element("th", "", label));
+  });
+  thead.append(headings);
+  const tbody = element("tbody");
+
+  localModels.forEach(model => {
+    const row = element("tr");
+    const id = known(model.model_id, "Unknown");
+    row.append(element("th", "", known(
+      model.display_name, id.startsWith("ollama:") ? id.slice(7) : id
+    )));
+    workloads.forEach(([workload]) => {
+      const record = records.find(item =>
+        item.model_id === model.model_id && item.workload === workload
+      );
+      const cell = element("td");
+      const status = record?.status || "workload_unknown";
+      const result = element("span", "recommendation-result",
+        statuses[status] || "Suitability unknown");
+      result.dataset.status = status;
+      cell.append(result);
+      row.append(cell);
+    });
+    tbody.append(row);
+  });
+
+  table.append(caption, thead, tbody);
+  const wrap = element("div", "recommendation-table-wrap");
+  wrap.append(table);
+  host.append(wrap);
+}
+
+function updateSyntheticNotice(profile) {
+  const notice = document.querySelector("#synthetic-notice");
+  if (!notice) return;
+  const models = Array.isArray(profile.models) ? profile.models : [];
+  const artifacts = Array.isArray(profile.artifacts) ? profile.artifacts : [];
+  const records = [
+    ...models.flatMap(item => Array.isArray(item.evidence) ? item.evidence : []),
+    ...artifacts.flatMap(item => Array.isArray(item.evidence) ? item.evidence : [])
+  ];
+  notice.hidden = !records.some(item => item.source === "synthetic-demo");
+}
+
 function renderModels(
   profile,
   suitabilitySummaries = [],
@@ -479,9 +563,9 @@ function renderModels(
 
     if (location === "local") {
       const observation = observedByModel.get(model.model_id);
-      const observationPanel = element("div", "model-suitability");
+      const observationPanel = element("details", "model-suitability");
       observationPanel.append(
-        element("h4", "suitability-heading", "Active memory observation"),
+        element("summary", "suitability-heading", "Active memory observation"),
       );
 
       if (observation) {
@@ -508,9 +592,9 @@ function renderModels(
 
       const recommendations = recommendationsByModel.get(model.model_id) || [];
       if (recommendations.length > 0) {
-        const recommendationPanel = element("div", "model-suitability");
+        const recommendationPanel = element("details", "model-suitability");
         recommendationPanel.append(
-          element("h4", "suitability-heading", "Workload recommendations"),
+          element("summary", "suitability-heading", "Workload recommendations"),
         );
 
         const workloadNames = {
@@ -661,7 +745,12 @@ function renderModels(
         : "Unknown",
     );
 
-    card.append(meta);
+    const specifications = element("details", "evidence");
+    specifications.append(
+      element("summary", "", "Model specifications"),
+      meta,
+    );
+    card.append(specifications);
     card.append(evidenceRecords(model, artifact));
     modelNode.append(card);
   });
@@ -943,6 +1032,10 @@ async function refreshDashboard(force = false) {
     renderRuntimes(
       data.runtimes || {},
       data.compatibility || {},
+    );
+    updateSyntheticNotice(data.models || {});
+    renderRecommendationOverview(
+      data.models || {}, data.workload_recommendations || []
     );
     renderModels(
       data.models || {},

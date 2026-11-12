@@ -99,6 +99,31 @@ class DashboardRecommendationTests(unittest.TestCase):
         data = self.collect(remote=True)
         self.assertEqual(data["workload_recommendations"], [])
 
+    def test_frontend_comparison_and_demo_notice(self):
+        html = Path("src/liongateos_model_advisor/web/index.html").read_text()
+        js = Path("src/liongateos_model_advisor/web/dashboard.js").read_text()
+        css = Path("src/liongateos_model_advisor/web/dashboard.css").read_text()
+        self.assertIn('id="synthetic-notice"', html)
+        self.assertIn('id="recommendation-overview"', html)
+        self.assertIn("renderRecommendationOverview", js)
+        self.assertIn("updateSyntheticNotice", js)
+        self.assertIn('item.source === "synthetic-demo"', js)
+        self.assertIn("not a performance ranking", js)
+        self.assertIn(".recommendation-table", css)
+
+    def test_supporting_model_details_are_collapsible(self):
+        js = Path("src/liongateos_model_advisor/web/dashboard.js").read_text()
+        self.assertIn(
+            'const recommendationPanel = element("details", "model-suitability")',
+            js
+        )
+        self.assertIn(
+            'const observationPanel = element("details", "model-suitability")',
+            js
+        )
+        self.assertIn('"Model specifications"', js)
+        self.assertIn('renderRecommendationOverview', js)
+
     def test_frontend_has_recommendation_rendering(self):
         script = Path(
             "src/liongateos_model_advisor/web/dashboard.js"

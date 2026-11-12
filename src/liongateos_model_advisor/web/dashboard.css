@@ -576,3 +576,81 @@ footer p {
 .suitability-reasons li + li {
   margin-top: 0.35rem;
 }
+
+
+/* Model Advisor usability: readable, evidence-conservative presentation */
+body { font-size: 17px; line-height: 1.6; }
+.app-shell { width: min(1640px, calc(100% - 2.5rem)); }
+.fact-label, .meta-label { font-size: 0.86rem; }
+.model-provider, .model-summary, .section-note { font-size: 0.96rem; }
+.dashboard-tab { font-size: 1rem; }
+.model-name { font-size: 1.2rem; }
+.model-card { min-width: 0; }
+.model-suitability { padding: 1rem; }
+.suitability-reasons { font-size: 0.98rem; }
+.demo-notice {
+  margin: 1rem 0; padding: 0.9rem 1rem;
+  border: 1px solid var(--lg-warning);
+  border-radius: var(--lg-radius-md);
+  color: var(--lg-warning);
+  font-weight: 700;
+}
+.demo-notice[hidden] { display: none; }
+.recommendation-overview {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--lg-border);
+  border-radius: var(--lg-radius-md);
+  background: var(--lg-surface);
+}
+.recommendation-overview h3 { font-size: 1.35rem; }
+.recommendation-overview p { color: var(--lg-text-muted); }
+.recommendation-table-wrap { overflow-x: auto; }
+.recommendation-table {
+  width: 100%; border-collapse: collapse;
+  min-width: 680px; text-align: left;
+}
+.recommendation-table th, .recommendation-table td {
+  padding: 0.85rem; border-bottom: 1px solid var(--lg-border);
+  vertical-align: top;
+}
+.recommendation-table th { color: var(--lg-text); }
+.recommendation-table td { overflow-wrap: anywhere; }
+.recommendation-result { display: block; font-weight: 650; }
+.recommendation-result[data-status="supported_candidate"] { color: var(--lg-success); }
+.recommendation-result[data-status="needs_hardware_verification"] { color: var(--lg-warning); }
+.recommendation-result[data-status="workload_unknown"] { color: var(--lg-text-muted); }
+.recommendation-result[data-status="not_recommended"] { color: var(--lg-danger); }
+@media (max-width: 700px) {
+  body { font-size: 16px; }
+  .app-shell { width: calc(100% - 1rem); }
+}
+
+
+/* Readability refinement: key results first; supporting detail on demand. */
+body { font-size: 18px; }
+.app-shell { width: min(1640px, calc(100% - 2rem)); }
+.recommendation-overview h3 { font-size: 1.5rem; }
+.recommendation-overview p { font-size: 1.05rem; }
+.recommendation-table th,
+.recommendation-table td { font-size: 1.05rem; padding: 1rem; }
+.recommendation-result { line-height: 1.5; }
+.model-name { font-size: 1.3rem; }
+.model-suitability summary {
+  cursor: pointer;
+  color: var(--lg-link);
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+.model-suitability summary:focus-visible {
+  outline: 2px solid var(--lg-focus);
+  outline-offset: 3px;
+}
+.model-suitability[open] summary { margin-bottom: 0.9rem; }
+.model-suitability p { font-size: 1rem; }
+.model-card > .evidence { padding: 0.8rem 0; }
+@media (max-width: 700px) {
+  body { font-size: 16px; }
+  .recommendation-table th,
+  .recommendation-table td { font-size: 0.95rem; }
+}
