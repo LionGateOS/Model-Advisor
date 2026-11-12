@@ -224,3 +224,23 @@ what replaced it rather than deleting the earlier accomplishment.
   ignored build/cache metadata identified. No cleanup performed.
 - No GPU operation, model execution, cross-project change or
   integration was authorized or performed.
+
+## 2026-11-11 — M10B Phase 2E artifact-bound task evidence
+
+- Implemented a new pure, fail-closed artifact/task evidence association
+  contract without changing recommendation behavior.
+- Closed the local evidence chain across M09A anchored manifest evidence,
+  exact local artifact identity, M09B recomputed blob/upstream binding,
+  immutable revision, exact upstream file, and artifact-scoped task metadata.
+- Added regressions for wrong artifact/model/registry/manifest/blob,
+  floating or conflicting revisions, file mismatches, unscoped task metadata,
+  malformed/private evidence, and recommendation non-promotion.
+- Final verification: 25 targeted Phase 2E tests, 94 M09A/M09B tests,
+  310 full Python tests, JavaScript syntax, and exact-scope checks passed.
+- Verified backup:
+  `model-advisor-m10b-phase2e-validated-20261111-175759.tgz`.
+- Published commit:
+  `3b8e3d43bf95eae6f2ce91bf01ea56acc5f7d4f4`.
+- No live upstream evidence retrieval, model execution, GPU use,
+  recommendation integration, DSH integration, WorkRunner integration,
+  or merge performed.

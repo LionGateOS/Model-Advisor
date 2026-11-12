@@ -422,3 +422,26 @@ This checkpoint authorizes design documentation only.
 No live upstream binding, model hashing, network retrieval,
 task-evidence enrichment, benchmark, integration, or deployment
 is authorized.
+
+## M10B Phase 2E — Artifact-bound task evidence contract — 2026-11-11
+
+**IMPLEMENTED / REGRESSION-VERIFIED / PUBLISHED.**
+
+- Pure synthetic evidence-association contract implemented at
+  `3b8e3d43bf95eae6f2ce91bf01ea56acc5f7d4f4`.
+- Requires an anchored local M09A identity and an exact M09B upstream
+  byte binding before task evidence can be associated.
+- Requires one immutable upstream revision, exact matched file,
+  consistent digest/size, and explicit artifact-file task applicability.
+- Repository-only or unknown task applicability remains insufficient.
+- Association never verifies performance and never independently changes
+  recommendation eligibility, model tasks, or model capabilities.
+- Current live M09B provider retrieval remains insufficient for this
+  contract because it is not yet bound to an immutable repository revision.
+- Next phase: design the smallest revision-bound upstream evidence producer,
+  validate it with synthetic fixtures, and preserve all current hash/network
+  authorization gates.
+- Recommendation integration remains deferred until the producer and
+  artifact-applicability semantics are independently verified.
+- Benchmarking, numerical ranking, DSH routing/execution, WorkRunner
+  delegation, and autonomous model execution remain out of scope.

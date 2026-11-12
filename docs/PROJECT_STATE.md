@@ -428,3 +428,38 @@ Next action:
   integration, routing and execution authority remain unauthorized.
 - Next: verify documentation synchronization, then investigate the
   smallest trustworthy local workload-evidence path.
+
+## 2026-11-11 — M10B Phase 2E artifact-bound task evidence checkpoint
+
+- Status: IMPLEMENTED / REGRESSION-VERIFIED / PUBLISHED.
+- Published commit:
+  `3b8e3d43bf95eae6f2ce91bf01ea56acc5f7d4f4`
+  on `m08-recommendation-layer`; local and remote tracking HEAD matched.
+- Added the pure synthetic-only artifact/task evidence association contract
+  in `artifact_task_evidence.py` with dedicated regression coverage.
+- The evidence chain now requires:
+  local M09A anchored manifest identity ->
+  exact local artifact identity ->
+  M09B recomputed blob/upstream byte binding ->
+  immutable upstream revision ->
+  exact upstream file ->
+  artifact-scoped provider-reported task evidence.
+- The contract fails closed for mismatched model, artifact, registry,
+  manifest digest, blob digest, revision, file, task scope, or ambiguous
+  provider evidence.
+- `associated` does NOT mean measured task performance and does NOT
+  promote a recommendation.
+- Existing `ModelProfile`, recommendation, dashboard, workload,
+  hashing/network authorization, and advisory-only authority remain unchanged.
+- Verification: 25 targeted Phase 2E tests, 94 M09A/M09B tests,
+  and 310 total Python tests passed; JavaScript syntax and diff checks passed.
+- Verified backup:
+  `model-advisor-m10b-phase2e-validated-20261111-175759.tgz`
+  plus SHA-256 sidecar under `MASTER_BACKUPS`.
+- No live network evidence retrieval, model hashing, model execution,
+  GPU use, DSH integration, WorkRunner integration, merge, or recommendation
+  integration was performed.
+- Next safe technical phase: design and validate a producer for
+  revision-bound upstream file and task evidence. Do not use floating
+  `main`/`master` as durable evidence and do not assume repository-level
+  task labels apply to every artifact.
