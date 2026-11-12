@@ -1,0 +1,447 @@
+# Roadmap
+
+Last reconciled: 2026-10-22.
+
+Status labels:
+- **VERIFIED** — supported by recorded test or execution evidence.
+- **IMPLEMENTED** — present in the project; verification may be incomplete.
+- **PLANNED** — intended but not implemented.
+- **DEFERRED** — postponed; do not treat as active implementation.
+- **HISTORICAL** — an earlier milestone or decision, not current status.
+
+## Milestone history
+
+The commit references below were observed in repository history. Their
+presence proves that the corresponding changes were committed; it does not
+by itself prove every real-hardware scenario is covered.
+
+| Milestone | Recorded implementation | Status and limits |
+|---|---|---|
+| M01 — Hardware profile | `a6d5451` — Add M01 hardware profile | IMPLEMENTED; hardware discovery is Linux-focused |
+| M02 — Runtime discovery | `6be0131` — Add M02 runtime discovery | IMPLEMENTED; supported runtime coverage remains limited |
+| M03 — Runtime compatibility | `309649c` — Add M03 runtime compatibility | IMPLEMENTED; unknown is retained when evidence is insufficient |
+| M04 — Dashboard | `54c2296` — Add M04 local evidence dashboard | IMPLEMENTED; local read-only dashboard |
+| M05 — Model metadata | `ea8ef8f` — Add provenance-first model metadata foundation | IMPLEMENTED; metadata normalization is not the same as fetching artifacts |
+| M06 — Memory estimation | `d8dd8df` — Add M06 model memory estimation foundation | IMPLEMENTED foundation; do not infer universal fit accuracy |
+| M07 — Ecosystem discovery and conservative fit foundations | `2efb00f` — Add ecosystem model discovery and conservative fit foundations | IMPLEMENTED foundation; broader recommendation behavior remains unfinished |
+| M08 — Qualification and recommendation layer | `29d1cb6` — Add conservative recommendation CLI | COMPLETE; conservative qualification and workload recommendation surfaces are implemented and verified; broader ranking, benchmarking, quantization guidance, and workload coverage remain future work |
+
+## Current M08 work
+
+The earlier M08 hardening and durable-continuity work was reviewed, verified,
+committed, and pushed. The implementation checkpoint is `abc31d0` —
+`Harden M08 compatibility and add durable continuity`.
+
+Verified hardening included:
+
+- CLI passive compatibility mode and graceful broken-pipe handling;
+- deduplicated qualification evidence sources;
+- CLI regression tests for passive and default capability probing;
+- dashboard regression protection ensuring `runtime_paths` is not returned.
+
+The last full code/test verification before documentation-only continuity
+commits passed all 121 tests in 2.532 seconds.
+
+M08 is complete at its bounded conservative scope. Existing model metadata,
+catalog discovery, fit, execution-fit, and qualification foundations now feed
+read-only workload recommendations without inventing performance rankings.
+
+Hugging Face catalog discovery already supports bounded public search,
+bounded detail enrichment, task/parameter filtering, deduplication, explicit
+partial/unavailable states, and conservative GGUF metadata handling. Repo-level
+GGUF totals are not promoted to exact model parameter counts or concrete
+artifact sizes without stronger evidence.
+
+A separate owner-requested candidate-model evaluation is recorded in
+`PROJECT_STATE.md`; its model identity and video claims remain unverified.
+
+## Implemented foundations
+
+The README and source history support these implemented foundations:
+
+- Hardware profile discovery and manual hardware entry.
+- Read-only discovery for supported local runtimes.
+- Conservative compatibility assessment based on explicit evidence.
+- Provenance-aware model metadata and local Ollama inventory discovery.
+- Local dashboard and normalized JSON output.
+- Memory/fit foundations and qualification capability surfaces.
+
+Implementation status is not a guarantee that every GPU, runtime, model, or
+workload has been independently tested.
+
+## Planned or incomplete
+
+- Broader NVIDIA, AMD, Intel, Apple Silicon and CPU support.
+- Broader runtime discovery and runtime metadata.
+- More complete model/runtime compatibility information.
+- VRAM, RAM, storage and offload estimates.
+- Quantization guidance and task-specific recommendations.
+- Reproducible benchmarks, comparison and benchmark history.
+- Clearer explanations, themes, accessibility and translations.
+- Arbitrary GGUF filesystem scanning is not currently part of Model Advisor.
+
+Do not mark a planned capability implemented until source changes and suitable
+verification evidence exist. Do not create a competing scanner or cache
+without an explicit product decision.
+
+## Next safe action
+
+Inspect the remaining model-discovery and normalization paths against current
+official Ollama and Hugging Face metadata. Identify the smallest missing
+evidence fields needed for conservative recommendation logic before changing
+the recommendation schema or adding ranking heuristics.
+
+## 2026-10-25 — M08 external evidence checkpoint
+
+**VERIFIED:** Three FitLLM-derived hybrid KV reference calculations
+match Model Advisor's existing calculator; 123 tests passed.
+
+**PARTIAL:** Remaining 46 external reference vectors have not yet been
+mapped to Model Advisor's supported architectures and contracts.
+
+**PLANNED:** Evidence-bounded quantization/context guidance, followed
+by measured benchmarking when separately approved.
+
+**LIMITATION:** This checkpoint does not establish a complete
+recommendation engine or universal model/hardware compatibility.
+
+## M08 context comparison — implementation checkpoint
+
+**IMPLEMENTED / PARTIALLY VERIFIED:** The read-only dashboard compares local
+Ollama artifacts at 4096, 8192, 16384 and 32768 tokens, preserves unknown
+memory evidence, separates context-limit status from memory fit, and shows
+independent GPU assessments. The complete 131-test Python suite and JavaScript syntax checks pass
+outside the restricted sandbox; browser visual review was subsequently completed
+successfully. Full quantization guidance and numerical performance ranking remain
+PLANNED future work.
+
+## M08 Conservative Recommendation V1 — 2026-10-25
+
+- IMPLEMENTED: A pure, read-only local-artifact recommendation classifier.
+- Workloads initially supported: coding, general chat, and reasoning.
+- Reuses existing ModelIdentity, ModelArtifact, and ModelQualification contracts.
+- Explicit reported task/capability evidence is required for workload matching.
+- Unknown hardware suitability is never promoted to qualified.
+- Remote artifacts and mismatched identities are rejected.
+- No performance scoring, downloads, model execution, or WorkRunner authority.
+- Dashboard integration and a dedicated conservative recommendation CLI surface are implemented.
+- LIMITATION: Workload taxonomy is intentionally narrow and requires future review.
+
+## M08 dashboard workload recommendations — 2026-10-25
+
+- IMPLEMENTED: Existing local-model dashboard cards now show coding,
+  general-chat and reasoning recommendation classifications.
+- Reuses Conservative Recommendation V1 and existing suitability evidence.
+- Preserves the complete-memory safeguard: unknown total memory cannot
+  produce a confirmed positive hardware qualification.
+- Remote-backed artifacts are excluded from local recommendations.
+- Missing reported workload metadata remains unknown.
+- No numerical performance ranking or benchmark claims are introduced.
+- No model execution, downloads, installation or WorkRunner authority.
+- Verification: full Python suite, JavaScript syntax and regression tests
+  must pass before this checkpoint is committed.
+- VERIFIED: Browser visual inspection completed successfully on 2026-10-25.
+
+
+## M08 recommendation evidence-quality correction — 2026-10-25
+
+Recommendation evidence matching now requires reported provenance for the
+specific metadata field that produced the workload match. Generic Ollama
+capabilities are not promoted into unsupported workload claims. Hardware
+qualification safeguards remain unchanged. The complete 167-test Python
+suite, JavaScript syntax check, and Git whitespace check pass.
+
+Explicit workload metadata for local Ollama models remains incomplete;
+broader ranking, benchmarking, and quantization guidance remain future work.
+
+## M08 local Ollama registry identity — 2026-10-25
+
+Optional registry-relative identity is now derived from a unique local Ollama
+manifest whose model-layer blob exists and matches the declared size. Invalid,
+missing, and ambiguous matches remain unknown. This does not infer workload
+specialization and does not change recommendation or hardware qualification.
+Verification, live registry identity review, backup, commit and push completed.
+
+## M08 recommendation CLI — 2026-10-25
+
+- IMPLEMENTED: `recommend` exposes the existing conservative local-artifact
+  recommendation pipeline as JSON.
+- `--workload` supports coding, general_chat and reasoning.
+- The CLI reuses the dashboard's existing qualification and recommendation
+  pipeline rather than introducing competing recommendation policy.
+- Output explicitly states that recommendations are conservative and that
+  performance ranking is not provided.
+- Remote-backed artifacts remain excluded by the existing pipeline.
+- Numerical performance ranking, benchmark claims and model execution are not
+  introduced.
+- VERIFIED: live CLI, privacy, full 181-test suite, JavaScript syntax, backup, commit and push completed before M08 closeout.
+
+## M08 closeout — 2026-10-25
+
+**COMPLETE / VERIFIED:** M08 is closed at its intentionally conservative scope.
+
+Verified delivered behavior includes qualification, local Ollama suitability
+presentation, context comparison, evidence-bounded workload recommendations for
+coding/general chat/reasoning, dashboard presentation, a structured recommendation
+CLI, and local Ollama registry identity provenance.
+
+Final M08 verification reached **181 passing Python tests**. The recommendation
+CLI was also exercised against the live local Ollama inventory, privacy checks
+passed, JavaScript syntax and Git whitespace checks passed, and the final CLI
+checkpoint was backed up before commit.
+
+M08 does **not** claim numerical performance ranking, benchmark-derived model
+ranking, comprehensive quantization guidance, universal hardware/runtime support,
+or comprehensive workload metadata. Those are later product/research milestones
+and do not block this bounded M08 closeout.
+
+The public/private boundary is unchanged: Model Advisor provides public advisory
+evidence and recommendations only. It has no WorkRunner execution, routing,
+approval, installation, dispatch, or policy authority.
+
+## M09A model-origin evidence validator V1 — 2026-10-26
+
+- IMPLEMENTED / VERIFIED (automated): read-only, fail-closed local
+  origin-evidence validation for one specific local Ollama artifact under the
+  single documented trust root `local-ollama-manifest-digest-record`.
+- The only cryptographic check recomputes the SHA-256 of the small local
+  Ollama manifest file and chains its single model-layer digest to the
+  recorded evidence. Model weight blobs are never read.
+- `upstream_origin_verified` is always `False` in V1; upstream-origin strings
+  are recorded as claims only. Names, URLs, sizes, architectures and
+  quantizations are never accepted as proof of origin.
+- Reuses the existing manifest-identity parsing helpers; no competing
+  manifest scanner or recommendation policy was introduced.
+- Verification: full suite reached **216 tests, OK**, including **35** new
+  simulated-fixture M09A tests, all passing; zero assertion failures.
+- LIMITATION: no upstream-origin verification, no model-blob verification,
+  no CLI or dashboard integration, and the trust root remains a declared
+  local assumption rather than proof of what the registry received.
+- Uncommitted at this checkpoint; commit awaits explicit owner approval.
+
+## M09B identity-evidence foundation V1 — 2026-10-30
+
+- IMPLEMENTED / VERIFIED (automated): a bounded, fail-closed upstream
+  identity-evidence foundation, advisory only, with no recommendation
+  promotion and no public schema contract change.
+- New module `upstream_identity_binding.py` provides:
+  GGUF identity claim extraction (`general.basename`, `general.repo_url`,
+  `general.quantized_by`, `general.base_model.N.repo_url`; every value is an
+  unverified claim and malformed or private-path values are withheld),
+  bounded candidate proposals from owner mappings and GGUF header URLs only
+  (never discovered by filename similarity), local model-layer digest
+  groups (local byte-identity evidence only), explicitly gated local
+  full-blob SHA-256 hashing (disclosed plan plus exact authorization;
+  default behavior never hashes model files), explicitly gated upstream
+  evidence retrieval (bounded to candidate repositories with fixed caps on
+  request count, response size, timeout, and redirects), and a pure
+  binding validator returning `bound`, `unbound`, or `unknown`.
+- A manifest-layer record collector was added to
+  `ollama_manifest_identity.py` (one record per registration whose
+  manifest declares one verifiable model layer whose blob is present by
+  stat metadata; no blob is ever read or hashed there).
+- Binding accepts upstream byte identity only when the locally computed
+  blob SHA-256 equals a provider-published SHA-256 for an exact upstream
+  file, with a unique unambiguous match and consistent size where
+  available. Matching manifest-declared local digests are kept distinct
+  from recomputed blob hashes; a mismatch is reported, never forgiven.
+  Byte identity to a hosted file is not proof of authorship, safety,
+  licensing, lineage, or workload suitability.
+- Verification: full suite **279 tests, OK** (227 baseline + **52** new
+  synthetic-fixture M09B tests), zero failures; no live model blob, no
+  external network, no GPU used by any test.
+- LIMITATION: no live verification executed in this job; the provider
+  evidence path exists but has not been exercised against real Hugging
+  Face records; findings are not wired into CLI/dashboard output; the
+  trust root remains a declared assumption.
+- Uncommitted at this checkpoint; commit awaits explicit owner approval.
+- Model Advisor remains advisory only and gains no WorkRunner execution
+  authority.
+
+## M10A — Evidence confidence — 2026-11-09
+
+**COMPLETE / VERIFIED:** Commit `77d6023`, pushed on
+`m08-recommendation-layer`; 280 Python tests passed and pre-commit
+backup verified.
+
+Conservative recommendation results now expose `high`, `limited`, or
+`unknown` evidence confidence through the recommendation contract,
+CLI JSON, and dashboard.
+
+**LIMITATION:** These labels are derived from existing classification
+statuses. They do not establish independent benchmark evidence,
+probabilistic confidence, or model performance rankings.
+
+**NEXT — M10B (PLANNED):** Review and expand the intentionally narrow
+workload taxonomy using explicit sourced task metadata. Preserve
+unknown classifications and existing hardware qualification safeguards.
+No M10B implementation is authorized by this record.
+
+## M10B Phase 1 — Embeddings — 2026-11-10
+
+**IMPLEMENTED / REGRESSION-VERIFIED / UNCOMMITTED.**
+
+- Extended conservative workload classification with `embeddings`.
+- Requires field-matched reported capability evidence.
+- Preserves unknown, hardware qualification, local-artifact,
+  and advisory-only safeguards.
+- Verification: 285 Python tests passed; JavaScript syntax and
+  Git diff checks passed; pre-closeout backup verified.
+- Scope excludes live model validation, embedding quality ranking,
+  benchmark execution, and additional workload categories.
+- Summarization, translation, classification, and other taxonomy
+  extensions remain deferred pending adequate evidence.
+- DeepSeek Harness integration remains unauthorized. Model Advisor
+  supplies advisory evidence only, not routing or execution.
+- Next: review and preserve the bounded milestone before any
+  broader workload or benchmark work.
+
+## M10B Phase 2 — Evidence feasibility — 2026-11-10
+
+**DISCOVERY COMPLETE / IMPLEMENTATION DEFERRED.**
+
+- M10B Phase 1 embeddings support is published at `05c45aaba01f`.
+- Summarization, translation, and text classification lack a verified
+  local artifact-bound task-evidence path in this discovery.
+- Hugging Face task labels must not automatically qualify a local
+  Ollama model by name or similarity.
+- Next implementation requires a reviewed, evidence-conservative
+  identity and task-provenance path; no implementation authorized.
+- Benchmarking, ranking and DeepSeek Harness execution integration
+  remain separate and unapproved.
+
+## M10B Phase 2C — Artifact-bound task-evidence design — 2026-11-11
+
+**STATUS: DESIGN PROPOSED / NOT IMPLEMENTED.**
+
+### Objective
+
+Associate provider-reported task metadata with an exactly identified
+local artifact without confusing file identity, model lineage, task
+claims, task performance, or hardware qualification.
+
+### Reuse and authority boundaries
+
+- Reuse M09A local manifest evidence and M09B upstream binding.
+- Reuse existing ModelIdentity, ModelArtifact, MetadataEvidence,
+  ModelQualification, and conservative recommendation contracts.
+- Do not create a competing identity verifier or recommendation policy.
+- No implicit model hashing, network retrieval, execution, downloads,
+  GPU allocation, DSH routing, or WorkRunner delegation.
+- Existing M09B hashing and network authorization gates remain intact.
+- Phase 2C changes no recommendation eligibility.
+
+### Proposed artifact-task association input
+
+An eventual pure validator must receive:
+
+1. Exact local model_id and artifact_id.
+2. Exact local registry identity and verified binding provenance.
+3. M09B binding status and matching upstream repo/file identity.
+4. A provider-reported immutable repository revision identifier.
+5. Provider task metadata obtained for that same revision.
+6. Exact task field, reported value, and source provenance.
+7. Explicit task applicability scope for the matched file.
+8. Explicit evidence of ambiguity, inconsistency, or missing fields.
+
+A model name, tag, architecture, URL, base-model relationship, or
+owner assertion cannot independently establish a verified binding.
+
+### Revision and applicability requirements
+
+- Floating main/master references do not provide a stable revision.
+- The file digest and task record must refer to a consistent,
+  immutable upstream revision.
+- Repository-level task metadata must not be assumed to apply to
+  every file in a repository containing multiple models or variants.
+- Quantized derivatives must not inherit base-model task assertions
+  merely through lineage claims.
+- Conflicting or ambiguous file/task mappings fail closed.
+- Provider task metadata is a reported claim, not measured performance.
+
+### Proposed result contract
+
+Status: associated | unknown | rejected
+
+- associated: exact artifact binding and revision-consistent,
+  artifact-applicable reported task metadata are established.
+- unknown: evidence is absent, incomplete, stale, revision-unbound,
+  or otherwise insufficient.
+- rejected: contradictory, malformed, or definitively mismatched
+  evidence prevents association.
+
+The result must preserve deterministic privacy-safe reason codes,
+the task assertion's reported provenance, the binding evidence
+category, and explicit nonverification of performance.
+
+An associated result is NOT a supported_candidate recommendation.
+It must not independently alter ModelIdentity.tasks or
+ModelIdentity.capabilities.
+
+### Synthetic test requirements
+
+All tests must use fixture records, with no model file reads,
+network calls, model inference, or GPU allocation.
+
+Positive cases:
+- Unique exact-file binding and revision-consistent task metadata.
+- Explicit artifact-scoped task reporting with preserved provenance.
+
+Fail-closed cases:
+- Missing local digest or upstream provider digest.
+- Wrong digest or incompatible file size.
+- Multiple matching upstream files or conflicting provider records.
+- Floating or mismatched upstream revisions.
+- Missing, contradictory, or unscoped repository task metadata.
+- Incorrect owner mapping or forged GGUF identity claim.
+- Base-model task attribution to an unverified derivative.
+- Incorrect local model_id, artifact_id, or registry identity.
+- Malformed/private-path evidence and unsafe output values.
+- Attempted promotion of unknown recommendation to supported_candidate.
+- Attempted bypass of existing network and blob-hashing gates.
+
+Regression requirements:
+- Current four workload classifications remain unchanged.
+- Existing hardware qualification and remote-artifact exclusions hold.
+- Existing M09A/M09B tests continue passing.
+- No public ModelProfile schema change without separate review.
+- No automatic recommendation promotion or numerical ranking.
+
+### Implementation decision gate
+
+Before source changes, review the minimum pure contract, identify
+the exact existing extension seam, confirm revision and
+artifact-applicability semantics, and approve a bounded
+synthetic-fixture implementation.
+
+Until that gate is satisfied, additional workloads remain deferred.
+
+### Current boundaries
+
+This checkpoint authorizes design documentation only.
+No live upstream binding, model hashing, network retrieval,
+task-evidence enrichment, benchmark, integration, or deployment
+is authorized.
+
+## M10B Phase 2E — Artifact-bound task evidence contract — 2026-11-11
+
+**IMPLEMENTED / REGRESSION-VERIFIED / PUBLISHED.**
+
+- Pure synthetic evidence-association contract implemented at
+  `3b8e3d43bf95eae6f2ce91bf01ea56acc5f7d4f4`.
+- Requires an anchored local M09A identity and an exact M09B upstream
+  byte binding before task evidence can be associated.
+- Requires one immutable upstream revision, exact matched file,
+  consistent digest/size, and explicit artifact-file task applicability.
+- Repository-only or unknown task applicability remains insufficient.
+- Association never verifies performance and never independently changes
+  recommendation eligibility, model tasks, or model capabilities.
+- Current live M09B provider retrieval remains insufficient for this
+  contract because it is not yet bound to an immutable repository revision.
+- Next phase: design the smallest revision-bound upstream evidence producer,
+  validate it with synthetic fixtures, and preserve all current hash/network
+  authorization gates.
+- Recommendation integration remains deferred until the producer and
+  artifact-applicability semantics are independently verified.
+- Benchmarking, numerical ranking, DSH routing/execution, WorkRunner
+  delegation, and autonomous model execution remain out of scope.

@@ -85,6 +85,59 @@ class DashboardServerTests(unittest.TestCase):
             server.server_close()
             thread.join(timeout=2)
 
+
+    @patch(
+        "liongateos_model_advisor.dashboard_server.collect_dashboard_data"
+    )
+    def test_dashboard_cache_reuse_and_forced_refresh(self, collect):
+        collect.side_effect = [
+            {"version": 1},
+            {"version": 2},
+        ]
+        server = create_dashboard_server(port=0)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            host, port = server.server_address
+            base = f"http://{host}:{port}/api/dashboard"
+
+            def get(url):
+                with urlopen(url, timeout=2) as response:
+                    return json.load(response)
+
+            self.assertEqual(get(base)["version"], 1)
+            self.assertEqual(get(base)["version"], 1)
+            self.assertEqual(collect.call_count, 1)
+            self.assertEqual(get(base + "?refresh=1")["version"], 2)
+            self.assertEqual(collect.call_count, 2)
+            self.assertEqual(get(base)["version"], 2)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
+    @patch(
+        "liongateos_model_advisor.dashboard_server.collect_dashboard_data"
+    )
+    def test_dashboard_cache_expiration(self, collect):
+        collect.side_effect = [{"version": 1}, {"version": 2}]
+        server = create_dashboard_server(port=0)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            host, port = server.server_address
+            url = f"http://{host}:{port}/api/dashboard"
+            with urlopen(url, timeout=2) as response:
+                self.assertEqual(json.load(response)["version"], 1)
+            server.dashboard_cache_expires = 0.0
+            with urlopen(url, timeout=2) as response:
+                self.assertEqual(json.load(response)["version"], 2)
+            self.assertEqual(collect.call_count, 2)
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
     def test_unknown_path_is_not_served(self):
         server = create_dashboard_server(port=0)
         thread = threading.Thread(

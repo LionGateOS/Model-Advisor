@@ -7,8 +7,14 @@ const gpuNode = document.querySelector("#gpu-list");
 const runtimeNode = document.querySelector("#runtime-list");
 const modelNode = document.querySelector("#model-list");
 const modelSummaryNode = document.querySelector("#model-summary");
+const contextNode = document.querySelector("#context-comparison");
 const ecosystemNode = document.querySelector("#ecosystem-list");
 const ecosystemSummaryNode = document.querySelector("#ecosystem-summary");
+const ecosystemSearch = document.querySelector("#ecosystem-search");
+const ecosystemSource = document.querySelector("#ecosystem-source");
+const ecosystemSort = document.querySelector("#ecosystem-sort");
+const ecosystemVisibleCount = document.querySelector("#ecosystem-visible-count");
+let ecosystemProfiles = [{}, {}];
 
 function known(value, fallback = "Unknown") {
   if (value === null || value === undefined || value === "") {
@@ -45,6 +51,10 @@ function formatInteger(value) {
   }
 
   return new Intl.NumberFormat("en-US").format(value);
+}
+
+function formatStatus(value) {
+  return known(value, "unknown").replaceAll("_", " ");
 }
 
 function formatSizeLabel(value, parameterCount) {
@@ -143,8 +153,22 @@ function renderGPUs(hardware) {
     );
 
     const meta = element("div", "device-meta");
-    addMeta(meta, "VRAM", formatBytes(gpu.total_vram_bytes));
-    addMeta(meta, "Driver", gpu.driver_version);
+    const integratedAMD = gpu.vendor === "AMD"
+      && gpu.model === "Raphael";
+    addMeta(
+      meta,
+      "VRAM",
+      gpu.total_vram_bytes == null
+        ? (integratedAMD
+          ? "Dedicated VRAM not reported; integrated graphics uses shared memory"
+          : "Not reported by hardware discovery")
+        : formatBytes(gpu.total_vram_bytes),
+    );
+    addMeta(
+      meta,
+      "Driver",
+      gpu.driver_version || "Driver version not reported",
+    );
     addMeta(
       meta,
       "Evidence",
@@ -222,9 +246,13 @@ function renderRuntimes(runtimesProfile, compatibilityProfile) {
 
     const meta = element("div", "runtime-meta");
     addMeta(meta, "Available", runtime.available ? "Yes" : "No");
-    addMeta(meta, "Version", runtime.version);
-    addMeta(meta, "Build", runtime.build);
-    addMeta(meta, "Commit", runtime.commit);
+    addMeta(
+      meta,
+      "Version",
+      runtime.version || (runtime.available
+        ? "Not reported by runtime"
+        : "Runtime not detected through configured discovery paths"),
+    );
     card.append(meta);
 
     const details = element("details", "evidence");
@@ -291,7 +319,96 @@ function evidenceRecords(model, artifact) {
   return details;
 }
 
-function renderModels(profile) {
+
+function renderRecommendationOverview(profile, recommendations) {
+  const host = document.querySelector("#recommendation-overview");
+  if (!host) return;
+  host.replaceChildren();
+
+  host.append(element("h3", "", "Model comparison"));
+  host.append(element("p", "",
+    "Evidence-based suitability, not a performance ranking. Unknown means unverified."));
+
+  const models = Array.isArray(profile.models) ? profile.models : [];
+  const artifacts = Array.isArray(profile.artifacts) ? profile.artifacts : [];
+  const localIds = new Set(
+    artifacts.filter(item => item.location === "local").map(item => item.model_id)
+  );
+  const localModels = models.filter(model => localIds.has(model.model_id));
+  const records = Array.isArray(recommendations) ? recommendations : [];
+
+  if (!localModels.length) {
+    host.append(element("p", "", "No locally stored Ollama models available for comparison."));
+    return;
+  }
+
+  const statuses = {
+    supported_candidate: "Supported candidate",
+    needs_hardware_verification: "Hardware verification needed",
+    workload_unknown: "Suitability unknown",
+    not_recommended: "Not recommended under current evidence"
+  };
+  const workloads = [
+    ["coding", "Coding"],
+    ["general_chat", "General chat"],
+    ["reasoning", "Reasoning"],
+    ["embeddings", "Embeddings"]
+  ];
+  const table = element("table", "recommendation-table");
+  const caption = element("caption", "visually-hidden", "Local model workload comparison");
+  const thead = element("thead");
+  const headings = element("tr");
+  ["Model", ...workloads.map(item => item[1])].forEach(label => {
+    headings.append(element("th", "", label));
+  });
+  thead.append(headings);
+  const tbody = element("tbody");
+
+  localModels.forEach(model => {
+    const row = element("tr");
+    const id = known(model.model_id, "Unknown");
+    row.append(element("th", "", known(
+      model.display_name, id.startsWith("ollama:") ? id.slice(7) : id
+    )));
+    workloads.forEach(([workload]) => {
+      const record = records.find(item =>
+        item.model_id === model.model_id && item.workload === workload
+      );
+      const cell = element("td");
+      const status = record?.status || "workload_unknown";
+      const result = element("span", "recommendation-result",
+        statuses[status] || "Suitability unknown");
+      result.dataset.status = status;
+      cell.append(result);
+      row.append(cell);
+    });
+    tbody.append(row);
+  });
+
+  table.append(caption, thead, tbody);
+  const wrap = element("div", "recommendation-table-wrap");
+  wrap.append(table);
+  host.append(wrap);
+}
+
+function updateSyntheticNotice(profile) {
+  const notice = document.querySelector("#synthetic-notice");
+  if (!notice) return;
+  const models = Array.isArray(profile.models) ? profile.models : [];
+  const artifacts = Array.isArray(profile.artifacts) ? profile.artifacts : [];
+  const records = [
+    ...models.flatMap(item => Array.isArray(item.evidence) ? item.evidence : []),
+    ...artifacts.flatMap(item => Array.isArray(item.evidence) ? item.evidence : [])
+  ];
+  notice.hidden = !records.some(item => item.source === "synthetic-demo");
+}
+
+function renderModels(
+  profile,
+  suitabilitySummaries = [],
+  memoryObservations = {},
+  workloadRecommendations = [],
+) {
   modelNode.replaceChildren();
 
   const models = Array.isArray(profile.models)
@@ -316,6 +433,26 @@ function renderModels(profile) {
         ? profile.artifacts
         : []
     ).map((artifact) => [artifact.model_id, artifact]),
+  );
+
+  const suitabilityByModel = new Map(
+    (Array.isArray(suitabilitySummaries) ? suitabilitySummaries : [])
+      .map((item) => [item.model_id, item]),
+  );
+
+
+  const recommendationsByModel = new Map();
+  (Array.isArray(workloadRecommendations) ? workloadRecommendations : [])
+    .forEach((item) => {
+      if (!recommendationsByModel.has(item.model_id)) {
+        recommendationsByModel.set(item.model_id, []);
+      }
+      recommendationsByModel.get(item.model_id).push(item);
+    });
+
+  const observedByModel = new Map(
+    (Array.isArray(memoryObservations.models) ? memoryObservations.models : [])
+      .map((item) => [item.model_id, item]),
   );
 
   const locationOrder = {
@@ -424,6 +561,137 @@ function renderModels(profile) {
 
     card.append(topline);
 
+    if (location === "local") {
+      const observation = observedByModel.get(model.model_id);
+      const observationPanel = element("details", "model-suitability");
+      observationPanel.append(
+        element("summary", "suitability-heading", "Active memory observation"),
+      );
+
+      if (observation) {
+        const observedMeta = element("div", "model-meta");
+        addMeta(
+          observedMeta,
+          "Loaded memory",
+          formatSizeLabel(observation.loaded_bytes),
+        );
+        addMeta(
+          observedMeta,
+          "GPU memory",
+          formatSizeLabel(observation.gpu_bytes),
+        );
+        observationPanel.append(observedMeta);
+      } else {
+        observationPanel.append(
+          element("p", "", "No active memory observation"),
+        );
+      }
+
+      card.append(observationPanel);
+
+
+      const recommendations = recommendationsByModel.get(model.model_id) || [];
+      if (recommendations.length > 0) {
+        const recommendationPanel = element("details", "model-suitability");
+        recommendationPanel.append(
+          element("summary", "suitability-heading", "Workload recommendations"),
+        );
+
+        const workloadNames = {
+          coding: "Coding",
+          general_chat: "General chat",
+          reasoning: "Reasoning",
+          embeddings: "Embeddings",
+        };
+        const recommendationLabels = {
+          supported_candidate: "Supported candidate",
+          needs_hardware_verification: "Hardware verification needed",
+          workload_unknown: "Workload suitability unknown",
+          not_recommended: "Not recommended under current evidence",
+        };
+
+        recommendations.forEach((item) => {
+          const row = element("div", "model-meta");
+          addMeta(
+            row,
+            workloadNames[item.workload] || item.workload,
+            recommendationLabels[item.status] || "Unknown",
+          );
+          recommendationPanel.append(row);
+
+          const confidenceLabels = {
+            high: "High — existing qualification evidence",
+            limited: "Limited — hardware verification incomplete",
+            unknown: "Unknown — insufficient evidence",
+          };
+          const confidenceRow = element("div", "model-meta");
+          addMeta(
+            confidenceRow,
+            "Evidence confidence",
+            confidenceLabels[item.evidence_confidence] ||
+              confidenceLabels.unknown,
+          );
+          recommendationPanel.append(confidenceRow);
+
+          if (Array.isArray(item.reasons) && item.reasons.length) {
+            const explanation = element(
+              "p",
+              "",
+              item.reasons.join("; "),
+            );
+            recommendationPanel.append(explanation);
+          }
+        });
+        card.append(recommendationPanel);
+      }
+
+      const suitability = suitabilityByModel.get(model.model_id);
+      const status = suitability?.status || "unknown";
+      const labels = {
+        qualified: "Qualified — evidence supports this path",
+        candidate: "Candidate — not yet confirmed",
+        not_qualified: "Not qualified under current evidence",
+        unknown: "Unknown — more evidence needed",
+      };
+      const reasons = Array.isArray(suitability?.reasons)
+        ? suitability.reasons
+        : [];
+
+      const panel = element("div", "model-suitability");
+      panel.append(
+        element("h4", "suitability-heading", "Model suitability"),
+        element(
+          "p",
+          `status-badge status-${status === "not_qualified" ? "incompatible" : status}`,
+          labels[status] || labels.unknown,
+        ),
+      );
+
+      if (reasons.length > 0) {
+        const explanation = element("ul", "suitability-reasons");
+        reasons.forEach((reason) => {
+          const explanations = {
+            "complete-model-memory-unknown":
+              "Total memory needs are not fully known, so a fit cannot be confirmed.",
+            "artifact-size-is-storage-not-resident-weight-proof":
+              "File size does not prove how much memory the loaded model will use.",
+            "runtime-overhead-unknown":
+              "Additional memory used by the runtime is unknown.",
+            "recurrent-state-memory-unknown":
+              "Additional recurrent-state memory needs are unknown.",
+            "multi-gpu-fit-not-proven":
+              "Using multiple GPUs may be possible, but a successful fit has not been proven.",
+          };
+          explanation.append(
+            element("li", "", explanations[reason] || reason.replaceAll("-", " ")),
+          );
+        });
+        panel.append(explanation);
+      }
+
+      card.append(panel);
+    }
+
     const meta = element("div", "model-meta");
 
     addMeta(
@@ -477,13 +745,134 @@ function renderModels(profile) {
         : "Unknown",
     );
 
-    card.append(meta);
+    const specifications = element("details", "evidence");
+    specifications.append(
+      element("summary", "", "Model specifications"),
+      meta,
+    );
+    card.append(specifications);
     card.append(evidenceRecords(model, artifact));
     modelNode.append(card);
   });
 }
 
+function renderContextComparisons(comparisons, modelsProfile) {
+  contextNode.replaceChildren();
+
+  const entries = Array.isArray(comparisons) ? comparisons : [];
+  const models = new Map(
+    (Array.isArray(modelsProfile.models) ? modelsProfile.models : [])
+      .map((model) => [model.model_id, model]),
+  );
+
+  if (entries.length === 0) {
+    contextNode.append(
+      element(
+        "div",
+        "empty-state",
+        "No locally stored Ollama model has enough evidence for comparison.",
+      ),
+    );
+    return;
+  }
+
+  const label = element("label", "context-selector-label", "Model");
+  const selector = document.createElement("select");
+  selector.id = "context-model-selector";
+  selector.className = "context-selector";
+  selector.setAttribute("aria-describedby", "context-help");
+
+  const table = element("div", "context-table-wrap");
+  const help = element(
+    "p",
+    "section-note context-help",
+    "KV-cache values use an assumed FP16 key/value cache (2 bytes per element), not a detected runtime setting. Estimates require supported attention metadata. Total-memory fit remains unassessed; GPUs are evaluated independently.",
+  );
+  help.id = "context-help";
+
+  const renderSelected = () => {
+    table.replaceChildren();
+    const selected = entries[Number(selector.value)];
+    const model = selected ? models.get(selected.model_id) : null;
+    const title = known(model?.display_name, selected?.model_id);
+    table.append(element("h3", "context-model-name", title));
+
+    const rows = element("tbody");
+    (selected?.options || []).forEach((option) => {
+      const row = element("tr");
+      const gpuCell = element("td", "context-value");
+      const assessments = Array.isArray(option.gpu_assessments)
+        ? option.gpu_assessments
+        : [];
+      if (assessments.length === 0) {
+        gpuCell.append(element("div", "", "Unknown"));
+      } else {
+        assessments.forEach((assessment) => {
+          gpuCell.append(
+            element(
+              "div",
+              "",
+              `${known(assessment.target_id)}: ${formatStatus(assessment.capacity_status)}`,
+            ),
+          );
+        });
+      }
+      row.append(
+        element("th", "context-value", formatInteger(option.context_length)),
+        element("td", "context-value", formatStatus(option.context_status)),
+        element(
+          "td", "context-value",
+          option.kv_cache_bytes == null
+            ? "Not estimated" : formatBytes(option.kv_cache_bytes),
+        ),
+        element(
+          "td", "context-value",
+          option.total_memory_status == null
+            ? "Not assessed" : formatStatus(option.total_memory_status),
+        ),
+        gpuCell,
+      );
+      row.firstElementChild.scope = "row";
+      rows.append(row);
+    });
+
+    const tableElement = document.createElement("table");
+    tableElement.className = "context-table";
+    tableElement.append(
+      element("caption", "visually-hidden", "Context comparison"),
+    );
+    const head = element("thead");
+    const headerRow = element("tr");
+    [
+      "Tokens",
+      "Context limit",
+      "KV cache (FP16 scenario)",
+      "Total memory fit",
+      "Independent GPU assessments",
+    ].forEach(
+      (heading) => headerRow.append(element("th", "", heading)),
+    );
+    head.append(headerRow);
+    tableElement.append(head, rows);
+    table.append(tableElement);
+  };
+
+  entries.forEach((entry, index) => {
+    const model = models.get(entry.model_id);
+    const option = element("option");
+    option.value = String(index);
+    option.textContent = known(model?.display_name, entry.model_id);
+    selector.append(option);
+  });
+
+  selector.addEventListener("change", renderSelected);
+  label.htmlFor = selector.id;
+  contextNode.append(label, selector, help, table);
+  renderSelected();
+}
+
 function renderEcosystem(huggingfaceProfile, openrouterProfile) {
+  ecosystemProfiles = [huggingfaceProfile, openrouterProfile];
   ecosystemNode.replaceChildren();
 
   const hfModels = Array.isArray(huggingfaceProfile.models)
@@ -495,41 +884,140 @@ function renderEcosystem(huggingfaceProfile, openrouterProfile) {
     `${hfModels.length} Hugging Face models · `
     + `${offerings.length} OpenRouter offerings`;
 
-  hfModels.slice(0, 6).forEach((model) => {
+  const query = ecosystemSearch.value.trim().toLocaleLowerCase();
+  const source = ecosystemSource.value;
+  const sort = ecosystemSort.value;
+
+  const entries = [
+    ...hfModels.map((item) => ({
+      item, source: "huggingface",
+      name: String(item.display_name || item.model_id || "Unknown"),
+      id: String(item.model_id || ""),
+      parameters: item.parameter_count,
+      context: item.context_length,
+    })),
+    ...offerings.map((item) => ({
+      item, source: "openrouter",
+      name: String(item.provider_model_id || "Unknown"),
+      id: String(item.model_id || ""),
+      parameters: null,
+      context: item.context_length,
+    })),
+  ].filter((entry) =>
+    (source === "all" || entry.source === source)
+    && (entry.name.toLocaleLowerCase().includes(query)
+      || entry.id.toLocaleLowerCase().includes(query))
+  );
+
+  entries.sort((a, b) => {
+    if (sort !== "name") {
+      const left = a[sort];
+      const right = b[sort];
+      const valid = (value) =>
+        typeof value === "number" && Number.isFinite(value) && value >= 0;
+      if (valid(left) !== valid(right)) return valid(left) ? -1 : 1;
+      if (valid(left) && left !== right) return right - left;
+    }
+    return a.name.localeCompare(b.name) || a.source.localeCompare(b.source);
+  });
+
+  ecosystemVisibleCount.textContent =
+    `${entries.length} of ${hfModels.length + offerings.length} entries shown`;
+
+  if (!entries.length) {
+    ecosystemNode.append(element("div", "empty-state",
+      "No models match the current search and source filter."));
+  }
+
+  entries.forEach((entry) => {
+    if (entry.source === "huggingface") {
+      const model = entry.item;
     const card = element("article", "model-card");
     card.append(
       element("h3", "model-name", known(model.display_name, model.model_id)),
       element("div", "model-provider", "Hugging Face"),
     );
     const meta = element("div", "model-meta");
-    addMeta(meta, "Parameters", formatInteger(model.parameter_count));
-    addMeta(meta, "Context", formatInteger(model.context_length));
-    addMeta(meta, "Architecture", model.architecture);
+    addMeta(meta, "Parameters", model.parameter_count == null
+      ? "Not reported by source" : formatInteger(model.parameter_count));
+    addMeta(meta, "Context", model.context_length == null
+      ? "Not reported by source" : formatInteger(model.context_length));
+    addMeta(meta, "Architecture", model.architecture || "Not reported by source");
     card.append(meta);
     ecosystemNode.append(card);
-  });
-
-  offerings.slice(0, 6).forEach((offering) => {
+    } else {
+      const offering = entry.item;
     const card = element("article", "model-card");
     card.append(
       element("h3", "model-name", offering.provider_model_id),
       element("div", "model-provider", "OpenRouter"),
     );
     const meta = element("div", "model-meta");
-    addMeta(meta, "Context", formatInteger(offering.context_length));
-    addMeta(meta, "Linked model", offering.model_id);
+    addMeta(meta, "Context", offering.context_length == null
+      ? "Not reported by source" : formatInteger(offering.context_length));
+    addMeta(meta, "Linked model", offering.model_id || "No verified model link");
     card.append(meta);
     ecosystemNode.append(card);
+    }
   });
 }
 
-async function refreshDashboard() {
+
+[ecosystemSearch, ecosystemSource, ecosystemSort].forEach((control) => {
+  control.addEventListener(
+    control === ecosystemSearch ? "input" : "change",
+    () => renderEcosystem(...ecosystemProfiles),
+  );
+});
+
+const dashboardTabs = Array.from(
+  document.querySelectorAll(".dashboard-tab")
+);
+
+function activateDashboardTab(tab, focus = false) {
+  dashboardTabs.forEach((item) => {
+    const selected = item === tab;
+    item.setAttribute("aria-selected", String(selected));
+    item.tabIndex = selected ? 0 : -1;
+    const panel = document.getElementById(
+      item.getAttribute("aria-controls")
+    );
+    if (panel) {
+      panel.hidden = !selected;
+    }
+  });
+  if (focus) {
+    tab.focus();
+  }
+}
+
+dashboardTabs.forEach((tab, index) => {
+  tab.addEventListener("click", () => activateDashboardTab(tab));
+  tab.addEventListener("keydown", (event) => {
+    let next = index;
+    if (event.key === "ArrowRight") {
+      next = (index + 1) % dashboardTabs.length;
+    } else if (event.key === "ArrowLeft") {
+      next = (index - 1 + dashboardTabs.length) % dashboardTabs.length;
+    } else if (event.key === "Home") {
+      next = 0;
+    } else if (event.key === "End") {
+      next = dashboardTabs.length - 1;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    activateDashboardTab(dashboardTabs[next], true);
+  });
+});
+
+async function refreshDashboard(force = false) {
   refreshButton.disabled = true;
   statusNode.classList.remove("error");
   statusNode.textContent = "Inspecting machine and model evidence…";
 
   try {
-    const response = await fetch("/api/dashboard", {
+    const response = await fetch(force ? "/api/dashboard?refresh=1" : "/api/dashboard", {
       cache: "no-store",
     });
 
@@ -545,7 +1033,20 @@ async function refreshDashboard() {
       data.runtimes || {},
       data.compatibility || {},
     );
-    renderModels(data.models || {});
+    updateSyntheticNotice(data.models || {});
+    renderRecommendationOverview(
+      data.models || {}, data.workload_recommendations || []
+    );
+    renderModels(
+      data.models || {},
+      data.suitability_summaries || [],
+      data.memory_observations || {},
+      data.workload_recommendations || [],
+    );
+    renderContextComparisons(
+      data.context_comparisons || [],
+      data.models || {},
+    );
     renderEcosystem(
       data.huggingface_models || {},
       data.openrouter_models || {},
@@ -563,5 +1064,5 @@ async function refreshDashboard() {
   }
 }
 
-refreshButton.addEventListener("click", refreshDashboard);
+refreshButton.addEventListener("click", () => refreshDashboard(true));
 refreshDashboard();

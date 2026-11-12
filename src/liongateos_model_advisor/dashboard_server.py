@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import threading
+import time
 from collections.abc import Sequence
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib.resources import files
@@ -31,6 +33,9 @@ class DashboardHTTPServer(ThreadingHTTPServer):
         runtime_paths: Sequence[str] | None = None,
     ) -> None:
         self.runtime_paths = tuple(runtime_paths or ())
+        self.dashboard_cache = None
+        self.dashboard_cache_expires = 0.0
+        self.dashboard_cache_lock = threading.Lock()
         super().__init__(server_address, DashboardRequestHandler)
 
 
@@ -97,7 +102,17 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
 
         if path == "/api/dashboard":
-            data = collect_dashboard_data(self.server.runtime_paths)
+            query = urlsplit(self.path).query
+            force = "refresh=1" in query.split("&")
+            with self.server.dashboard_cache_lock:
+                now = time.monotonic()
+                if (not force and self.server.dashboard_cache is not None
+                        and now < self.server.dashboard_cache_expires):
+                    data = self.server.dashboard_cache
+                else:
+                    data = collect_dashboard_data(self.server.runtime_paths)
+                    self.server.dashboard_cache = data
+                    self.server.dashboard_cache_expires = time.monotonic() + 60.0
             self._send_json(200, data)
             return
 
